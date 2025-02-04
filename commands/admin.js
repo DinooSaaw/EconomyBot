@@ -177,7 +177,7 @@ module.exports = {
                 const job = await Job.findOne({ name: jobName });
                 if (!job) return interaction.reply({ embeds: [createEmbed('❌ Job Not Found', 'The job you want to assign does not exist!', '#FF0000')] });
 
-                if (!user) user = await User.create({ _id: targetUser.id, job: jobName, gold: 0 });
+                if (!user) user = await User.create({ _id: targetUser.id, job: jobName});
                 else {
                     user.job = jobName;
                     await user.save();
