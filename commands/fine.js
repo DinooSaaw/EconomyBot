@@ -50,7 +50,7 @@ module.exports = {
 
         // Deduct fine (can result in negative balance)
         target.gold -= fineAmount;
-        treasury.gold -= fineAmount;
+        treasury.gold += fineAmount;
 
         // Push the fine to the fines array
         target.criminalRecord.push({
