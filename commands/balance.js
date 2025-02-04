@@ -22,7 +22,6 @@ module.exports = {
       user = await User.create({
         _id: interaction.user.id,
         name: interaction.user.username,
-        gold: 10,
       });
 
     const balanceEmbed = new EmbedBuilder()
