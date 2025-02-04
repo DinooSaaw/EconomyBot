@@ -25,7 +25,7 @@ module.exports = {
         const executor = interaction.user;
         const member = interaction.member;
         const targetUser = interaction.options.getUser('target');
-        const fineAmount = interaction.options.getInteger('amount');
+        const fineAmount = Math.ceil(interaction.options.getInteger('amount'));
         const reason = interaction.options.getString('reason') || 'No reason provided';
 
         // Check if executor has permission (via user ID or role)

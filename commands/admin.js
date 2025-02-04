@@ -129,7 +129,7 @@ module.exports = {
         // Job Management
         if (subcommand === 'job') {
             const name = interaction.options.getString('name');
-            const basePay = interaction.options.getInteger('basepay');
+            const basePay = Math.ceil(interaction.options.getInteger('basepay'));
 
             if (action === 'create') {
                 if (!basePay) {
@@ -189,7 +189,7 @@ module.exports = {
             }
 
             if (action === 'modify_gold') {
-                const amount = interaction.options.getInteger('amount');
+                const amount = Math.ceil(interaction.options.getInteger('amount'));
                 if (!user) return interaction.reply({ embeds: [createEmbed('❌ User Not Found', 'User not found in database!', '#FF0000')] });
 
                 user.gold += amount;
@@ -212,8 +212,8 @@ module.exports = {
         if (subcommand === 'shop') {
             const name = interaction.options.getString('name');
             const maxEmployees = interaction.options.getInteger('maxemployees');
-            const weeklyPay = interaction.options.getInteger('weeklypay');
-            const governmentPayments = interaction.options.getInteger('governmentpayments');
+            const weeklyPay = Math.floor(interaction.options.getInteger('weeklypay'));
+            const governmentPayments = Math.floor(interaction.options.getInteger('governmentpayments'))
             const governmentTaxes = interaction.options.getInteger('governmenttaxes');
 
             if (action === 'create') {

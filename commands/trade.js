@@ -22,7 +22,7 @@ module.exports = {
 
   async execute(interaction) {
     const targetUser = interaction.options.getUser("target");
-    const amount = interaction.options.getInteger("amount");
+    const amount = Math.floor(interaction.options.getInteger("amount"));
     const senderUser = await User.findOne({ _id: interaction.user.id });
     let receiverUser = await User.findOne({ _id: targetUser.id });
 
