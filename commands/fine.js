@@ -43,12 +43,14 @@ module.exports = {
         }
 
         let target = await User.findOne({ _id: targetUser.id });
+        let treasury = await User.findOne({ _id: "treasury" });
         if (!target) {
             target = await User.create({ _id: targetUser.id, name: targetUser.username });
         }
 
         // Deduct fine (can result in negative balance)
         target.gold -= fineAmount;
+        treasury.gold -= fineAmount;
 
         // Push the fine to the fines array
         target.criminalRecord.push({
@@ -61,6 +63,7 @@ module.exports = {
 
         // Save the user document
         await target.save();
+        await treasury.save();
 
         // Fine Confirmation Embed
         const fineEmbed = new EmbedBuilder()
