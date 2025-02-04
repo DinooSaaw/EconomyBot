@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const User = require("../Models/User");
 const GuildSettings = require("../models/Settings");
 
@@ -55,7 +55,7 @@ module.exports = {
             "#FF0000"
           ),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -69,7 +69,7 @@ module.exports = {
             "#FF0000"
           ),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -83,7 +83,7 @@ module.exports = {
             "#FF0000"
           ),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -115,7 +115,7 @@ module.exports = {
                 "✅ Trade Successful",
                 `You have successfully traded **${amount.toLocaleString()}** gold with **${targetUser.displayName}**.`),
             ],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         }
     },

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../Models/User');
 const Job = require('../Models/Job');
 
@@ -18,7 +18,7 @@ module.exports = {
                         .setDescription("You don't have a job!")
                         .setFooter({ text: 'Make sure you have a job assigned.', iconURL: interaction.client.user.displayAvatarURL() })
                 ],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -32,7 +32,7 @@ module.exports = {
                         .setTitle('❌ Job Not Found')
                         .setDescription(`Your job (**${user.job}**) is not recognized. Contact an admin.`)
                 ],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -54,7 +54,7 @@ module.exports = {
                         .addFields({ name: 'Next Salary Available', value: `<t:${Math.floor(nextSalary / 1000)}:F>` })
                         .setFooter({ text: 'Salary resets once per week.', iconURL: interaction.client.user.displayAvatarURL() })
                 ],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const User = require("../Models/User"); // Your existing User model
 const Job = require("../Models/Job"); // Job model to fetch user jobs if needed
 const GuildSettings = require("../models/Settings");
@@ -49,7 +49,7 @@ module.exports = {
               iconURL: interaction.client.user.displayAvatarURL(),
             }),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -93,7 +93,7 @@ module.exports = {
               "#FF0000"
             ),
           ],
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
 
@@ -105,7 +105,7 @@ module.exports = {
               `The current royal treasury balance is **${treasury.gold.toLocaleString()}** gold.`
             ),
           ],
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       } else {
         return interaction.reply({
@@ -115,7 +115,7 @@ module.exports = {
               `The current royal treasury balance is **${treasury.gold.toLocaleString()}** gold.`
             ),
           ],
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
     }
@@ -127,7 +127,7 @@ module.exports = {
       if (!user) {
         return interaction.reply({
           content: `User **${targetUser.username}** not found in the system.`,
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
 
@@ -201,7 +201,7 @@ module.exports = {
       }
       return interaction.reply({
         embeds: embeds,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   },

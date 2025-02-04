@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../Models/User');
 const Job = require('../Models/Job');
 const Shop = require('../models/Shop');
@@ -122,7 +122,7 @@ module.exports = {
         if (!isAdmin) {
             return interaction.reply({
                 embeds: [createEmbed('❌ Unauthorized', 'You do not have the required permissions to perform this action.', '#FF0000')],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -135,7 +135,7 @@ module.exports = {
                 if (!basePay) {
                     return interaction.reply({
                         embeds: [createEmbed('❌ Job Creation Failed', 'You must provide a base salary!', '#FF0000')],
-                        ephemeral: true
+                        flags: MessageFlags.Ephemeral
                     });
                 }
 

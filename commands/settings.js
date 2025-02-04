@@ -2,6 +2,7 @@ const {
   SlashCommandBuilder,
   PermissionFlagsBits,
   EmbedBuilder,
+  MessageFlags,
 } = require("discord.js");
 const GuildSettings = require("../models/Settings"); // Your MongoDB model for storing guild settings
 
@@ -63,7 +64,7 @@ module.exports = {
         .setTitle("🔄 Settings Reset")
         .setDescription("All settings have been reset to their default values.");
 
-      interaction.reply({ embeds: [embed], ephemeral: true });
+      interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 
     if (subcommand === "show") {
@@ -92,7 +93,7 @@ module.exports = {
           text: "Use /settings toggle [option] to change settings.",
         });
 
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 
     if (subcommand === "toggle") {
@@ -112,7 +113,7 @@ module.exports = {
               }.`
             ),
         ],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   },

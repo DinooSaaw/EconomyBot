@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../Models/User');
 
 const ALLOWED_USER_IDS = ['', '']; // Replace with authorized user IDs
@@ -38,7 +38,7 @@ module.exports = {
                         .setTitle('❌ Access Denied')
                         .setDescription('You do not have permission to fine users.')
                 ],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
