@@ -31,6 +31,9 @@ module.exports = {
               { name: "Trade Notifications", value: "tradeNotifications" }
             )
         )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand.setName("reset").setDescription("Reset all settings to default.")
     ),
 
   async execute(interaction) {
@@ -45,6 +48,23 @@ module.exports = {
     }
 
     const subcommand = interaction.options.getSubcommand();
+    if (subcommand === "reset") {
+      // Reset all settings to default
+      await settings.updateOne({
+        showCriminalRecord: true,
+        showTreasuryBalance: true,
+        tradeNotifications: true,
+      });
+
+      await settings.save();
+
+      embed = new EmbedBuilder()
+        .setColor("#FF0000")
+        .setTitle("🔄 Settings Reset")
+        .setDescription("All settings have been reset to their default values.");
+
+      interaction.reply({ embeds: [embed], ephemeral: true });
+    }
 
     if (subcommand === "show") {
       // Display current settings
