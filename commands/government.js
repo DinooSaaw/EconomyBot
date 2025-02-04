@@ -118,7 +118,6 @@ module.exports = {
           ephemeral: true,
         });
       }
-      // Show the treasury balance
     }
 
     if (subcommand === "view_user") {
