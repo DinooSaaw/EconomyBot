@@ -29,6 +29,10 @@ module.exports = {
                 name: "Show Treasury Balance to Everyone",
                 value: "showTreasuryBalance",
               },
+              {
+                name: "Show Users Balance to Everyone",
+                value: "showUsersBalance",
+              },
               { name: "Trade Notifications", value: "tradeNotifications" }
             )
         )
@@ -54,6 +58,7 @@ module.exports = {
       await settings.updateOne({
         showCriminalRecord: true,
         showTreasuryBalance: true,
+        showUsersBalance: true,
         tradeNotifications: true,
       });
 
@@ -81,6 +86,11 @@ module.exports = {
           {
             name: "Show Treasury Balance to Everyone",
             value: settings.showTreasuryBalance ? "✅ Enabled" : "❌ Disabled",
+            inline: false,
+          },
+          {
+            name: "Show Users Balance to Everyone",
+            value: settings.showUsersBalance ? "✅ Enabled" : "❌ Disabled",
             inline: false,
           },
           {
