@@ -5,6 +5,7 @@
   "scripts": {
     "deploy-commands": "node deploy-commands.js",
     "remove-commands": "node remove-commands.js",
+    "list-commands": "node list-commands.js",
     "start": "node bot.js"
   },
   "author": "",
