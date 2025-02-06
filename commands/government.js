@@ -115,7 +115,6 @@ module.exports = {
               `The current royal treasury balance is **${treasury.gold.toLocaleString()}** gold.`
             ),
           ],
-          flags: MessageFlags.Ephemeral,
         });
       }
     }
