@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../Models/User');
-const GuildSettings = require('../Models/GuildSettings');
+const GuildSettings = require("../models/Settings.js");
 
 module.exports = {
     data: new SlashCommandBuilder()

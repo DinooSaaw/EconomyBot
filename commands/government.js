@@ -29,8 +29,8 @@ module.exports = {
     const settings = await GuildSettings.findById(guildId) || new GuildSettings({ _id: guildId });
 
     const member = interaction.member;
-    const hasRequiredRole = member && member.roles.cache.some(role => settings.fine.allowedRoles.includes(role.id));
-    const isAuthorizedUser = settings.fine.allowedUsers.includes(interaction.user.id);
+    const hasRequiredRole = member && member.roles.cache.some(role => settings.government.allowedRoles.includes(role.id));
+    const isAuthorizedUser = settings.government.allowedUsers.includes(interaction.user.id);
 
 
     if (!hasRequiredRole && !isAuthorizedUser) {
