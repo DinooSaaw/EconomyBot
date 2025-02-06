@@ -4,9 +4,6 @@ const Job = require('../Models/Job');
 const Shop = require('../models/Shop');
 const GuildSettings = require("../models/Settings");
 
-const ALLOWED_USER_IDS = ['', '']; // Replace with authorized user IDs
-const ALLOWED_ROLE_IDS = ['739331042552578180', '']; // Replace with authorized role IDs
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('admin')
