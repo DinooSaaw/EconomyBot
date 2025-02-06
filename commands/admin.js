@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags } = require('discord.js');
-const User = require('../Models/User');
-const Job = require('../Models/Job');
+const User = require('../models/User');
+const Job = require('../models/Job');
 const Shop = require('../models/Shop');
 const GuildSettings = require("../models/Settings");
 

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
-const User = require("../Models/User"); // Your existing User model
-const Job = require("../Models/Job"); // Job model to fetch user jobs if needed
+const User = require("../models/User"); // Your existing User model
+const Job = require("../models/Job"); // Job model to fetch user jobs if needed
 const GuildSettings = require("../models/Settings");
 
 module.exports = {

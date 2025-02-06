@@ -3,7 +3,7 @@ const {
   EmbedBuilder,
   MessageFlags,
 } = require("discord.js");
-const User = require("../Models/User.js");
+const User = require("../models/User.js");
 const GuildSettings = require("../models/Settings.js");
 
 module.exports = {

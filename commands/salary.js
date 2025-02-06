@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
-const User = require('../Models/User');
-const Job = require('../Models/Job');
+const User = require('../models/User');
+const Job = require('../models/Job');
 
 module.exports = {
     data: new SlashCommandBuilder()
