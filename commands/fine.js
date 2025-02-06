@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../Models/User');
-
-const ALLOWED_USER_IDS = ['', '']; // Replace with authorized user IDs
-const ALLOWED_ROLE_IDS = ['739331042552578180', '']; // Replace with authorized role IDs
+const GuildSettings = require('../Models/GuildSettings');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,15 +20,21 @@ module.exports = {
                 .setDescription('Reason for the fine')
                 .setRequired(false)),
     async execute(interaction) {
-        const executor = interaction.user;
+
+        const guildId = interaction.guildId;
+        const settings = await GuildSettings.findById(guildId) || new GuildSettings({ _id: guildId });
+
         const member = interaction.member;
+        const hasRequiredRole = member && member.roles.cache.some(role => settings.fine.allowedRoles.includes(role.id));
+        const isAuthorizedUser = settings.fine.allowedUsers.includes(interaction.user.id);
+
+        const executor = interaction.user;
         const targetUser = interaction.options.getUser('target');
         const fineAmount = Math.ceil(interaction.options.getInteger('amount'));
         const reason = interaction.options.getString('reason') || 'No reason provided';
 
         // Check if executor has permission (via user ID or role)
-        if (!ALLOWED_USER_IDS.includes(executor.id) && 
-            !member.roles.cache.some(role => ALLOWED_ROLE_IDS.includes(role.id))) {
+        if (!hasRequiredRole && !isAuthorizedUser) {
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()

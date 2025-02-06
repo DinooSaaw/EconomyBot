@@ -3,9 +3,6 @@ const User = require("../Models/User"); // Your existing User model
 const Job = require("../Models/Job"); // Job model to fetch user jobs if needed
 const GuildSettings = require("../models/Settings");
 
-const ALLOWED_USER_IDS = ["", ""]; // Replace with authorized user IDs
-const ALLOWED_ROLE_IDS = ["739331042552578180", ""]; // Replace with authorized role IDs
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("government")
@@ -28,12 +25,13 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    // Check if the user has the required roles or is an allowed user
-    const member = interaction.guild.members.cache.get(interaction.user.id);
-    const hasRequiredRole =
-      member &&
-      member.roles.cache.some((role) => ALLOWED_ROLE_IDS.includes(role.id));
-    const isAuthorizedUser = ALLOWED_USER_IDS.includes(interaction.user.id);
+    const guildId = interaction.guildId;
+    const settings = await GuildSettings.findById(guildId) || new GuildSettings({ _id: guildId });
+
+    const member = interaction.member;
+    const hasRequiredRole = member && member.roles.cache.some(role => settings.fine.allowedRoles.includes(role.id));
+    const isAuthorizedUser = settings.fine.allowedUsers.includes(interaction.user.id);
+
 
     if (!hasRequiredRole && !isAuthorizedUser) {
       return interaction.reply({
@@ -50,14 +48,6 @@ module.exports = {
             }),
         ],
         flags: MessageFlags.Ephemeral,
-      });
-    }
-
-    // Fetch guild settings
-    let settings = await GuildSettings.findOne({ _id: interaction.guild.id });
-    if (!settings) {
-      settings = await GuildSettings.create({
-        _id: interaction.guild.id,
       });
     }
 

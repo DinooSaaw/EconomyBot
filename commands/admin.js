@@ -2,6 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags } =
 const User = require('../Models/User');
 const Job = require('../Models/Job');
 const Shop = require('../models/Shop');
+const GuildSettings = require("../models/Settings");
 
 const ALLOWED_USER_IDS = ['', '']; // Replace with authorized user IDs
 const ALLOWED_ROLE_IDS = ['739331042552578180', '']; // Replace with authorized role IDs
@@ -103,6 +104,15 @@ module.exports = {
         ),
 
     async execute(interaction) {
+
+
+        const guildId = interaction.guildId;
+        const settings = await GuildSettings.findById(guildId) || new GuildSettings({ _id: guildId });
+    
+        const member = interaction.member;
+        const hasRequiredRole = member && member.roles.cache.some(role => settings.fine.allowedRoles.includes(role.id));
+        const isAuthorizedUser = settings.fine.allowedUsers.includes(interaction.user.id);
+
         const subcommand = interaction.options.getSubcommand();
         const action = interaction.options.getString('action');
 
@@ -115,11 +125,7 @@ module.exports = {
                 .setFooter({ text: interaction.client.user.tag, iconURL: interaction.client.user.displayAvatarURL() });
         };
 
-        // Check if user has "Admin" role or is an administrator
-        const member = interaction.guild.members.cache.get(interaction.user.id);
-        const isAdmin = member && (ALLOWED_USER_IDS.includes(interaction.user.id) || member.roles.cache.some(role => ALLOWED_ROLE_IDS.includes(role.id)))
-
-        if (!isAdmin) {
+        if (!hasRequiredRole && !isAuthorizedUser) {
             return interaction.reply({
                 embeds: [createEmbed('❌ Unauthorized', 'You do not have the required permissions to perform this action.', '#FF0000')],
                 flags: MessageFlags.Ephemeral
