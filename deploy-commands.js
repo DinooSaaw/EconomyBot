@@ -14,12 +14,16 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
     try {
-        console.log('Started registering commands.');
+        console.log('Started registering commands...');
+        
+        for (const command of commands) {
+            console.log(`Registering command: ${command.name}`);
+        }
 
         await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: commands });
-        
-        console.log('✅ Commands registered!');
+
+        console.log('✅ All commands registered successfully!');
     } catch (error) {
-        console.error('Error registering commands:', error);
+        console.error('❌ Error registering commands:', error);
     }
 })();
