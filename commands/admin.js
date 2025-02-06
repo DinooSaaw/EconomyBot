@@ -1,268 +1,262 @@
-const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-} = require("discord.js");
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags } = require('discord.js');
+const User = require('../Models/User');
+const Job = require('../Models/Job');
+const Shop = require('../models/Shop');
 const GuildSettings = require("../models/Settings");
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("settings")
-    .setDescription(
-      "Admin commands for managing the systems within the economy system."
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .addSubcommand((subcommand) =>
-      subcommand.setName("show").setDescription("View current guild settings.")
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("toggle")
-        .setDescription("Toggle a specific setting.")
-        .addStringOption((option) =>
-          option
-            .setName("option")
-            .setDescription("The setting to toggle")
-            .setRequired(true)
-            .addChoices(
-              { name: "Show Criminal Record", value: "showCriminalRecord" },
-              {
-                name: "Show Treasury Balance to Everyone",
-                value: "showTreasuryBalance",
-              },
-              {
-                name: "Show Users Balance to Everyone",
-                value: "showUsersBalance",
-              },
-              { name: "Trade Notifications", value: "tradeNotifications" }
-            )
+    data: new SlashCommandBuilder()
+        .setName('admin')
+        .setDescription('Admin commands for managing the systems within the economy system.')
+        
+        // Job Management Subcommand
+        .addSubcommand(subcommand =>
+            subcommand.setName('job')
+                .setDescription('Manage jobs in the economy system.')
+                .addStringOption(option =>
+                    option.setName('action')
+                        .setDescription('What do you want to do?')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Create', value: 'create' },
+                            { name: 'Remove', value: 'remove' },
+                            { name: 'Update', value: 'update' }
+                        )
+                )
+                .addStringOption(option =>
+                    option.setName('name')
+                        .setDescription('Job name (required for create, update, remove)') 
+                        .setRequired(true)
+                )
+                .addIntegerOption(option =>
+                    option.setName('basepay')
+                        .setDescription('Base salary for this job (only for create/update)')
+                )
         )
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("reset")
-        .setDescription("Reset all settings to default.")
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("modify_permissions")
-        .setDescription(
-          "Modify role or user permissions for specific commands."
+        
+        // User Management Subcommand
+        .addSubcommand(subcommand =>
+            subcommand.setName('user')
+                .setDescription('Manage users in the economy system.')
+                .addStringOption(option =>
+                    option.setName('action')
+                        .setDescription('What do you want to do?')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Set Job', value: 'set_job' },
+                            { name: 'Modify Gold', value: 'modify_gold' },
+                            { name: 'Delete User', value: 'delete' }
+                        )
+                )
+                .addUserOption(option =>
+                    option.setName('target')
+                        .setDescription('User to modify.')
+                        .setRequired(true)
+                )
+                .addStringOption(option =>
+                    option.setName('job')
+                        .setDescription('New job name (only for set_job)')
+                )
+                .addIntegerOption(option =>
+                    option.setName('amount')
+                        .setDescription('Gold amount (only for modify_gold)')
+                )
         )
-        .addStringOption((option) =>
-          option
-            .setName("command")
-            .setDescription("Select the command to modify permissions for.")
-            .setRequired(true)
-            .addChoices(
-              { name: "Fine", value: "fine" },
-              { name: "Government", value: "government" },
-              { name: "Admin", value: "admin" }
-            )
-        )
-        .addRoleOption((option) =>
-          option
-            .setName("role")
-            .setDescription("Select a role to modify.")
-            .setRequired(false)
-        )
-        .addUserOption((option) =>
-          option
-            .setName("user")
-            .setDescription("Select a user to modify.")
-            .setRequired(false)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("action")
-            .setDescription("Choose to add or remove the role/user.")
-            .setRequired(true)
-            .addChoices(
-              { name: "Add", value: "add" },
-              { name: "Remove", value: "remove" }
-            )
-        )
-    ),
 
-  async execute(interaction) {
-    const guildId = interaction.guild.id;
-    let settings = await GuildSettings.findOne({ _id: guildId });
+        // Shop Management Subcommand
+        .addSubcommand(subcommand =>
+            subcommand.setName('shop')
+                .setDescription('Manage shops in the economy system.')
+                .addStringOption(option =>
+                    option.setName('action')
+                        .setDescription('What do you want to do?')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Create', value: 'create' },
+                            { name: 'Remove', value: 'remove' },
+                            { name: 'Update', value: 'update' }
+                        )
+                )
+                .addStringOption(option =>
+                    option.setName('name')
+                        .setDescription('Shop name (required for create, update, remove)')
+                        .setRequired(true)
+                )
+                .addIntegerOption(option =>
+                    option.setName('maxemployees')
+                        .setDescription('Maximum number of employees for this shop (only for create/update)')
+                )
+                .addIntegerOption(option =>
+                    option.setName('weeklypay')
+                        .setDescription('Weekly pay for this shop (only for create/update)')
+                )
+                .addIntegerOption(option =>
+                    option.setName('governmentpayments')
+                        .setDescription('Government payments for this shop (only for create/update)')
+                )
+                .addIntegerOption(option =>
+                    option.setName('governmenttaxes')
+                        .setDescription('Government taxes for this shop (only for create/update)')
+                )
+        ),
 
-    if (!settings) {
-      settings = new GuildSettings({ _id: guildId });
-      await settings.save();
-    }
+    async execute(interaction) {
 
-    const subcommand = interaction.options.getSubcommand();
 
-    if (subcommand === "reset") {
-      await settings.deleteOne({ _id: guildId });
+        const guildId = interaction.guildId;
+        const settings = await GuildSettings.findById(guildId) || new GuildSettings({ _id: guildId });
+    
+        const member = interaction.member;
+        const hasRequiredRole = member && member.roles.cache.some(role => settings.admin.allowedRoles.includes(role.id));
+        const isAuthorizedUser = settings.admin.allowedUsers.includes(interaction.user.id);
 
-      await new GuildSettings({ _id: guildId });
+        const subcommand = interaction.options.getSubcommand();
+        const action = interaction.options.getString('action');
 
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("#FF0000")
-            .setTitle("🔄 Settings Reset")
-            .setDescription("All settings have been reset to default values."),
-        ],
-        ephemeral: true,
-      });
-    }
+        // Embed response function
+        const createEmbed = (title, description, color = '#00FF00') => {
+            return new EmbedBuilder()
+                .setColor(color)
+                .setTitle(title)
+                .setDescription(description)
+                .setFooter({ text: interaction.client.user.tag, iconURL: interaction.client.user.displayAvatarURL() });
+        };
 
-    if (subcommand === "show") {
-      const embed = new EmbedBuilder()
-        .setColor("#00AAFF")
-        .setTitle("⚙️ Guild Settings")
-        .addFields(
-          {
-            name: "Show Criminal Record",
-            value: settings.showCriminalRecord ? "✅ Enabled" : "❌ Disabled",
-            inline: false,
-          },
-          {
-            name: "Show Treasury Balance to Everyone",
-            value: settings.showTreasuryBalance ? "✅ Enabled" : "❌ Disabled",
-            inline: false,
-          },
-          {
-            name: "Show Users Balance to Everyone",
-            value: settings.showUsersBalance ? "✅ Enabled" : "❌ Disabled",
-            inline: false,
-          },
-          {
-            name: "Trade Notifications",
-            value: settings.tradeNotifications ? "✅ Enabled" : "❌ Disabled",
-            inline: false,
-          }
-        );
-
-      // Show command permissions
-      const commandNames = ["fine", "government", "admin"];
-      for (const command of commandNames) {
-        const allowedRoles = settings[command]?.allowedRoles || [];
-        const allowedUsers = settings[command]?.allowedUsers || [];
-
-        const roleMentions =
-          allowedRoles.map((id) => `<@&${id}>`).join(", ") || "None";
-        const userMentions =
-          allowedUsers.map((id) => `<@${id}>`).join(", ") || "None";
-
-        embed.addFields({
-          name: `🔹 ${
-            command.charAt(0).toUpperCase() + command.slice(1)
-          } Command Permissions`,
-          value: `**Roles:** ${roleMentions}\n**Users:** ${userMentions}`,
-          inline: false,
-        });
-      }
-
-      embed.setFooter({
-        text: "Use /settings modify_permissions to update roles/users.",
-      });
-
-      return interaction.reply({ embeds: [embed], ephemeral: true });
-    }
-
-    if (subcommand === "toggle") {
-      const option = interaction.options.getString("option");
-      settings[option] = !settings[option];
-      await settings.save();
-
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("#00FF00")
-            .setTitle("✅ Setting Updated")
-            .setDescription(
-              `**${option.replace(/([A-Z])/g, " $1").trim()}** is now ${
-                settings[option] ? "✅ Enabled" : "❌ Disabled"
-              }.`
-            ),
-        ],
-        ephemeral: true,
-      });
-    }
-
-    if (subcommand === "modify_permissions") {
-      const command = interaction.options.getString("command");
-      const role = interaction.options.getRole("role");
-      const user = interaction.options.getUser("user");
-      const action = interaction.options.getString("action");
-
-      if (!role && !user) {
-        return interaction.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor("#FF0000")
-              .setTitle("❌ Invalid Input")
-              .setDescription(
-                "You must specify either a **Role** or a **User**."
-              ),
-          ],
-          ephemeral: true,
-        });
-      }
-
-      const field = role ? "allowedRoles" : "allowedUsers";
-      const id = role ? role.id : user.id;
-      const list = settings[command][field];
-
-      if (action === "add") {
-        if (!list.includes(id)) {
-          list.push(id);
-        } else {
-          return interaction.reply({
-            embeds: [
-              new EmbedBuilder()
-                .setColor("#FFA500")
-                .setTitle("⚠️ Already Exists")
-                .setDescription(
-                  `The ${role ? "role" : "user"} **${
-                    role ? role.name : user.tag
-                  }** is already assigned for \`${command}\`.`
-                ),
-            ],
-            ephemeral: true,
-          });
+        if (!hasRequiredRole && !isAuthorizedUser) {
+            return interaction.reply({
+                embeds: [createEmbed('❌ Unauthorized', 'You do not have the required permissions to perform this action.', '#FF0000')],
+                flags: MessageFlags.Ephemeral
+            });
         }
-      } else {
-        const index = list.indexOf(id);
-        if (index !== -1) {
-          list.splice(index, 1);
-        } else {
-          return interaction.reply({
-            embeds: [
-              new EmbedBuilder()
-                .setColor("#FF0000")
-                .setTitle("❌ Not Found")
-                .setDescription(
-                  `The ${role ? "role" : "user"} **${
-                    role ? role.name : user.tag
-                  }** is not assigned to \`${command}\`.`
-                ),
-            ],
-            ephemeral: true,
-          });
+
+        // Job Management
+        if (subcommand === 'job') {
+            const name = interaction.options.getString('name');
+            const basePay = Math.ceil(interaction.options.getInteger('basepay'));
+
+            if (action === 'create') {
+                if (!basePay) {
+                    return interaction.reply({
+                        embeds: [createEmbed('❌ Job Creation Failed', 'You must provide a base salary!', '#FF0000')],
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+
+                await Job.create({ name, basePay });
+
+                return interaction.reply({
+                    embeds: [createEmbed('✅ Job Created', `Job **${name}** created with **${basePay}** base pay.`)]
+                });
+            }
+
+            if (action === 'update') {
+                const job = await Job.findOne({ name });
+                if (!job) return interaction.reply({ embeds: [createEmbed('❌ Job Not Found', 'No job with that name exists!', '#FF0000')] });
+
+                if (basePay !== null) job.basePay = basePay;
+                await job.save();
+
+                return interaction.reply({
+                    embeds: [createEmbed('✅ Job Updated', `Job **${name}** updated successfully.`)]
+                });
+            }
+
+            if (action === 'remove') {
+                const job = await Job.findOneAndDelete({ name });
+                if (!job) return interaction.reply({ embeds: [createEmbed('❌ Job Not Found', 'No job with that name exists!', '#FF0000')] });
+                return interaction.reply({
+                    embeds: [createEmbed('🗑️ Job Deleted', `Job **${name}** has been deleted from the system.`)]
+                });
+            }
         }
-      }
 
-      await settings.save();
+        // User Management
+        if (subcommand === 'user') {
+            const targetUser = interaction.options.getUser('target');
+            let user = await User.findOne({ _id: targetUser.id });
 
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("#00FF00")
-            .setTitle("✅ Permissions Updated")
-            .setDescription(
-              `Successfully ${action === "add" ? "added" : "removed"} **${
-                role ? role.name : user.tag
-              }** to **${command}** permissions.`
-            ),
-        ],
-        ephemeral: true,
-      });
+            if (action === 'set_job') {
+                const jobName = interaction.options.getString('job');
+                const job = await Job.findOne({ name: jobName });
+                if (!job) return interaction.reply({ embeds: [createEmbed('❌ Job Not Found', 'The job you want to assign does not exist!', '#FF0000')] });
+
+                if (!user) user = await User.create({ _id: targetUser.id, job: jobName});
+                else {
+                    user.job = jobName;
+                    await user.save();
+                }
+
+                return interaction.reply({
+                    embeds: [createEmbed('✅ Job Set', `${targetUser.username} is now a **${jobName}**.`)]
+                });
+            }
+
+            if (action === 'modify_gold') {
+                const amount = Math.ceil(interaction.options.getInteger('amount'));
+                if (!user) return interaction.reply({ embeds: [createEmbed('❌ User Not Found', 'User not found in database!', '#FF0000')] });
+
+                user.gold += amount;
+                await user.save();
+
+                return interaction.reply({
+                    embeds: [createEmbed('💰 Gold Modified', `Updated **${targetUser.username}**'s balance by **${amount}** gold. New balance: **${user.gold}**.`)]
+                });
+            }
+
+            if (action === 'delete') {
+                await User.findOneAndDelete({ _id: targetUser.id });
+                return interaction.reply({
+                    embeds: [createEmbed('🗑️ User Deleted', `${targetUser.username} has been deleted from the database.`)]
+                });
+            }
+        }
+
+        // Shop Management
+        if (subcommand === 'shop') {
+            const name = interaction.options.getString('name');
+            const maxEmployees = interaction.options.getInteger('maxemployees');
+            const weeklyPay = Math.floor(interaction.options.getInteger('weeklypay'));
+            const governmentPayments = Math.floor(interaction.options.getInteger('governmentpayments'))
+            const governmentTaxes = interaction.options.getInteger('governmenttaxes');
+
+            if (action === 'create') {
+                await Shop.create({ 
+                    name, 
+                    maxEmployees, 
+                    employees: [], // Start with no employees
+                    weeklyPay, 
+                    governmentPayments, 
+                    governmentTaxes 
+                });
+
+                return interaction.reply({
+                    embeds: [createEmbed('✅ Shop Created', `Shop **${name}** created with **${maxEmployees}** max employees.`)]
+                });
+            }
+
+            if (action === 'update') {
+                const shop = await Shop.findOne({ name });
+                if (!shop) return interaction.reply({ embeds: [createEmbed('❌ Shop Not Found', 'No shop with that name exists!', '#FF0000')] });
+
+                if (maxEmployees !== null) shop.maxEmployees = maxEmployees;
+                if (weeklyPay !== null) shop.weeklyPay = weeklyPay;
+                if (governmentPayments !== null) shop.governmentPayments = governmentPayments;
+                if (governmentTaxes !== null) shop.governmentTaxes = governmentTaxes;
+
+                await shop.save();
+
+                return interaction.reply({
+                    embeds: [createEmbed('✅ Shop Updated', `Shop **${name}** updated successfully.`)]
+                });
+            }
+
+            if (action === 'remove') {
+                const shop = await Shop.findOneAndDelete({ name });
+                if (!shop) return interaction.reply({ embeds: [createEmbed('❌ Shop Not Found', 'No shop with that name exists!', '#FF0000')] });
+                return interaction.reply({
+                    embeds: [createEmbed('🗑️ Shop Deleted', `Shop **${name}** has been deleted from the system.`)]
+                });
+            }
+        }
     }
-  },
 };
