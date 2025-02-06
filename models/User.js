@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
     _id: { type: String, required: true },
-    name: { type: String, default: null },
+    name: { type: String, required: true },
     job: { type: String, default: null },
     gold: { type: Number, default: 0 },
     lastSalary: { type: Date, default: null },
