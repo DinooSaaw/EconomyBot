@@ -4,23 +4,27 @@ module.exports = {
         if (!interaction.isCommand()) return;
 
         const user = interaction.user.tag;
-        const guild = interaction.guild ? interaction.guild.name : 'DMs';
-        const channel = interaction.channel ? `#${interaction.channel.name}` : 'Direct Message';
+        const guild = interaction.guild ? interaction.guild.name : 'Direct Messages';
+        const channel = interaction.channel ? `#${interaction.channel.name}` : 'DMs';
+        const timestamp = new Date().toISOString();
 
-        console.log(`📩 Received command: /${interaction.commandName} from ${user} in ${guild} (${channel})`);
+        // Log full command including options/arguments
+        const commandDetails = interaction.options.data.map(option => `${option.name}:${option.value}`).join(', ') || 'No options';
+
+        console.log(`[${timestamp}] 📩 Received command: /${interaction.commandName} ${commandDetails} from ${user} in ${guild} (${channel})`);
 
         const command = client.commands.get(interaction.commandName);
         if (!command) {
-            console.warn(`⚠️ Command not found: ${interaction.commandName} (User: ${user}, Location: ${guild} - ${channel})`);
+            console.warn(`[${timestamp}] ⚠️ Command not found: /${interaction.commandName} (${commandDetails}) (User: ${user}, Location: ${guild} - ${channel})`);
             return interaction.reply({ content: '❌ Command not found!', ephemeral: true });
         }
 
         try {
-            console.log(`▶️ Executing command: /${interaction.commandName} by ${user} in ${guild} (${channel})`);
+            console.log(`[${timestamp}] ▶️ Executing command: /${interaction.commandName} ${commandDetails} by ${user} in ${guild} (${channel})`);
             await command.execute(interaction);
-            console.log(`✅ Successfully executed command: /${interaction.commandName} by ${user} in ${guild} (${channel})`);
+            console.log(`[${timestamp}] ✅ Successfully executed command: /${interaction.commandName} ${commandDetails} by ${user} in ${guild} (${channel})`);
         } catch (error) {
-            console.error(`❌ Error executing command: /${interaction.commandName} by ${user} in ${guild} (${channel}) -`, error);
+            console.error(`[${timestamp}] ❌ Error executing command: /${interaction.commandName} ${commandDetails} by ${user} in ${guild} (${channel}) -`, error);
             return interaction.reply({ content: '❌ There was an error executing this command!', ephemeral: true });
         }
     }
