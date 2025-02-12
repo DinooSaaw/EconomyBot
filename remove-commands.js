@@ -14,7 +14,7 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
         console.log('🔴 Started deleting all guild (/) commands.');
 
         // Fetch all guild slash commands
-        const commands = await rest.get(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID));
+        const commands = await rest.get(Routes.applicationCommands(CLIENT_ID, GUILD_ID));
         console.log(`Fetched ${commands.length} guild commands.`);
 
         // Delete each command

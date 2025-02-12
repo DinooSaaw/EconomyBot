@@ -8,7 +8,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
         console.log('Fetching registered commands from Discord...\n');
 
         const commands = await rest.get(
-            Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID) // Fetch guild-specific commands
+            Routes.applicationCommands(process.env.CLIENT_ID, process.env.GUILD_ID) // Fetch guild-specific commands
         );
 
         if (commands.length === 0) {
