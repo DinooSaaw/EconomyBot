@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // Load environment variables
 const { REST, Routes } = require('discord.js');
 const fs = require('fs');
 
@@ -25,8 +25,9 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
     try {
-        console.log('Started registering global commands...');
+        console.log('🔴 Starting the registration of global commands...');
 
+        // Register global slash commands
         await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
 
         console.log('✅ Global commands registered successfully!');
