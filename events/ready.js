@@ -7,6 +7,8 @@ module.exports = {
     name: 'ready',
     once: true,
     execute(client) {
+        client.user.setActivity('All the gold in the bank', { type: 'WATCHING' });
+
         console.log(`[${timestamp}] ✅ ${client.user.tag} is online!`);
     }
 };
