@@ -36,6 +36,10 @@ module.exports = {
                     option.setName('role')
                         .setDescription('Role to be assigned for this job (only for create/update)')
                 )
+                .addIntegerOption(option =>
+                    option.setName('tax')
+                        .setDescription('Tax amount for this job (only for create/update)')
+                )
         )
         
         // User Management Subcommand
@@ -113,10 +117,16 @@ module.exports = {
             const name = interaction.options.getString('name');
             const basePay = interaction.options.getInteger('basepay');
             const role = interaction.options.getRole('role');
+            const tax = interaction.options.getInteger('tax');
             
             if (action === 'create') {
-                await Job.create({ name, basePay, roleId: role?.id || null });
-                return interaction.reply(`✅ Job **${name}** created with **${basePay}** base pay and role ${role ? role.name : 'None'}.`);
+                await Job.create({ 
+                    name, 
+                    basePay, 
+                    roleId: role?.id || null, 
+                    tax: tax || 0 // Default tax to 0 if not provided
+                });
+                return interaction.reply(`✅ Job **${name}** created with **${basePay}** base pay, role ${role ? role.name : 'None'}, and **${tax || 0}** tax.`);
             }
             
             if (action === 'update') {
@@ -125,9 +135,10 @@ module.exports = {
                 
                 if (basePay !== null) job.basePay = basePay;
                 if (role) job.roleId = role.id;
+                if (tax !== null) job.tax = tax;
                 await job.save();
                 
-                return interaction.reply(`✅ Job **${name}** updated with new base pay: **${basePay}**, role: ${role ? role.name : 'None'}.`);
+                return interaction.reply(`✅ Job **${name}** updated with new base pay: **${basePay}**, role: ${role ? role.name : 'None'}, and tax: **${tax || 0}**.`);
             }
         }
     }

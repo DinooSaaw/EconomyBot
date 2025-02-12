@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../models/User');
 const Job = require('../models/Job');
+const User = require('../models/User');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -30,7 +31,7 @@ module.exports = {
                     new EmbedBuilder()
                         .setColor('#FF0000') // Red for error
                         .setTitle('❌ Job Not Found')
-                        .setDescription(`Your job (**${user.job}**) is not recognized. Contact an admin.`)
+                        .setDescription(`Your job (**${user.job}**) is not recognized. Contact an admin or dev.`)
                 ],
                 flags: MessageFlags.Ephemeral
             });
@@ -60,10 +61,15 @@ module.exports = {
 
         // Grant salary and update last salary timestamp
         const salary = job.basePay;
-        user.gold += salary;
+        const tax = job.tax || 0;
+        user.gold += salary - tax; // Subtract tax from salary
         user.lastSalary = new Date().toISOString(); // Store current timestamp in ISO format
-        await user.save();
 
+        let treasury = await User.findOne({ _id: "treasury" });
+        treasury.gold += tax; // Add tax to treasury
+        await user.save();
+        await treasury.save();
+        
         const salaryEmbed = new EmbedBuilder()
             .setColor('#FFD700') // Gold color
             .setTitle('💰 Salary!')
