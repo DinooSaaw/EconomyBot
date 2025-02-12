@@ -59,9 +59,9 @@ module.exports = {
         }
 
         // Grant salary and update last salary timestamp
-        const salary = job.basePay;
         const tax = job.tax || 0;
-        user.gold += salary - tax; // Subtract tax from salary
+        const salary = job.basePay - tax
+        user.gold += salary; // Subtract tax from salary
         user.lastSalary = new Date().toISOString(); // Store current timestamp in ISO format
 
         let treasury = await User.findOne({ _id: "treasury" });
@@ -75,7 +75,7 @@ module.exports = {
             .setDescription(`**${interaction.user.displayName}**, you received **${salary}** gold for working as a **${user.job}**.`)
             .addFields(
                 { name: 'Base Salary', value: `**${job.basePay.toLocaleString()}** gold`, inline: true },
-                { name: 'Total Received', value: `**${salary.toLocaleString()}** gold`, inline: true },
+                { name: 'After Tax', value: `**${salary.toLocaleString()}** gold`, inline: true },
                 { name: 'New Balance', value: `**${user.gold.toLocaleString()}** gold`, inline: true },
                 { name: 'Next Salary Available', value: `<t:${Math.floor((now + oneWeek) / 1000)}:F>`, inline: false }
             )
