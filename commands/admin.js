@@ -140,6 +140,89 @@ module.exports = {
                 
                 return interaction.reply(`✅ Job **${name}** updated with new base pay: **${basePay}**, role: ${role ? role.name : 'None'}, and tax: **${tax || 0}**.`);
             }
+
+            if (action === 'remove') {
+                const job = await Job.findOne({ name });
+                if (!job) return interaction.reply(`❌ Job **${name}** not found.`);
+                await job.deleteOne({ name });
+                return interaction.reply(`✅ Job **${name}** removed.`);
+            }
+        }
+
+        // User Management
+        if (subcommand === 'user') {
+            const target = interaction.options.getUser('target');
+            const action = interaction.options.getString('action');
+
+            if (action === 'set_job') {
+                const jobName = interaction.options.getString('job');
+                const user = await User.findOne({ _id: target.id });
+                if (!user) return interaction.reply(`❌ User **${target.username}** not found.`);
+                
+                const job = await Job.findOne({ name: jobName });
+                if (!job) return interaction.reply(`❌ Job **${jobName}** not found.`);
+                
+                user.job = job.name;
+                await user.save();
+                return interaction.reply(`✅ Job for **${target.username}** updated to **${jobName}**.`);
+            }
+
+            if (action === 'modify_gold') {
+                const amount = interaction.options.getInteger('amount');
+                const user = await User.findOne({ _id: target.id });
+                if (!user) return interaction.reply(`❌ User **${target.username}** not found.`);
+                
+                user.gold += amount;
+                await user.save();
+                return interaction.reply(`✅ Gold for **${target.username}** updated. New balance: **${user.gold}**.`);
+            }
+
+            if (action === 'delete') {
+                const user = await User.findOne({ _id: target.id });
+                if (!user) return interaction.reply(`❌ User **${target.username}** not found.`);
+                await user.deleteOne({ _id: target.id });
+                return interaction.reply(`✅ User **${target.username}** deleted.`);
+            }
+        }
+
+        // Shop Management
+        if (subcommand === 'shop') {
+            const name = interaction.options.getString('name');
+            const maxEmployees = interaction.options.getInteger('maxemployees');
+            const weeklyPay = interaction.options.getInteger('weeklypay');
+            const governmentPayments = interaction.options.getInteger('governmentpayments');
+            const governmentTaxes = interaction.options.getInteger('governmenttaxes');
+            
+            if (action === 'create') {
+                await Shop.create({ 
+                    name, 
+                    maxEmployees, 
+                    weeklyPay, 
+                    governmentPayments, 
+                    governmentTaxes
+                });
+                return interaction.reply(`✅ Shop **${name}** created with **${maxEmployees}** max employees, **${weeklyPay}** weekly pay, government payments: **${governmentPayments}**, and taxes: **${governmentTaxes}**.`);
+            }
+            
+            if (action === 'update') {
+                const shop = await Shop.findOne({ name });
+                if (!shop) return interaction.reply(`❌ Shop **${name}** not found.`);
+                
+                if (maxEmployees !== null) shop.maxEmployees = maxEmployees;
+                if (weeklyPay !== null) shop.weeklyPay = weeklyPay;
+                if (governmentPayments !== null) shop.governmentPayments = governmentPayments;
+                if (governmentTaxes !== null) shop.governmentTaxes = governmentTaxes;
+                await shop.save();
+                
+                return interaction.reply(`✅ Shop **${name}** updated.`);
+            }
+
+            if (action === 'remove') {
+                const shop = await Shop.findOne({ name });
+                if (!shop) return interaction.reply(`❌ Shop **${name}** not found.`);
+                await shop.deleteOne({name});
+                return interaction.reply(`✅ Shop **${name}** removed.`);
+            }
         }
     }
 };
