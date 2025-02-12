@@ -32,6 +32,10 @@ module.exports = {
                     option.setName('basepay')
                         .setDescription('Base salary for this job (only for create/update)')
                 )
+                .addRoleOption(option =>
+                    option.setName('role')
+                        .setDescription('Role to be assigned for this job (only for create/update)')
+                )
         )
         
         // User Management Subcommand
@@ -101,161 +105,29 @@ module.exports = {
         ),
 
     async execute(interaction) {
-
-
-        const guildId = interaction.guildId;
-        const settings = await GuildSettings.findById(guildId) || new GuildSettings({ _id: guildId });
-    
-        const member = interaction.member;
-        const hasRequiredRole = member && member.roles.cache.some(role => settings.admin.allowedRoles.includes(role.id));
-        const isAuthorizedUser = settings.admin.allowedUsers.includes(interaction.user.id);
-
         const subcommand = interaction.options.getSubcommand();
         const action = interaction.options.getString('action');
-
-        // Embed response function
-        const createEmbed = (title, description, color = '#00FF00') => {
-            return new EmbedBuilder()
-                .setColor(color)
-                .setTitle(title)
-                .setDescription(description)
-                .setFooter({ text: interaction.client.user.tag, iconURL: interaction.client.user.displayAvatarURL() });
-        };
-
-        if (!hasRequiredRole && !isAuthorizedUser) {
-            return interaction.reply({
-                embeds: [createEmbed('❌ Unauthorized', 'You do not have the required permissions to perform this action.', '#FF0000')],
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
+        
         // Job Management
         if (subcommand === 'job') {
             const name = interaction.options.getString('name');
-            const basePay = Math.ceil(interaction.options.getInteger('basepay'));
-
+            const basePay = interaction.options.getInteger('basepay');
+            const role = interaction.options.getRole('role');
+            
             if (action === 'create') {
-                if (!basePay) {
-                    return interaction.reply({
-                        embeds: [createEmbed('❌ Job Creation Failed', 'You must provide a base salary!', '#FF0000')],
-                        flags: MessageFlags.Ephemeral
-                    });
-                }
-
-                await Job.create({ name, basePay });
-
-                return interaction.reply({
-                    embeds: [createEmbed('✅ Job Created', `Job **${name}** created with **${basePay}** base pay.`)]
-                });
+                await Job.create({ name, basePay, roleId: role?.id || null });
+                return interaction.reply(`✅ Job **${name}** created with **${basePay}** base pay and role ${role ? role.name : 'None'}.`);
             }
-
+            
             if (action === 'update') {
                 const job = await Job.findOne({ name });
-                if (!job) return interaction.reply({ embeds: [createEmbed('❌ Job Not Found', 'No job with that name exists!', '#FF0000')] });
-
+                if (!job) return interaction.reply(`❌ Job **${name}** not found.`);
+                
                 if (basePay !== null) job.basePay = basePay;
+                if (role) job.roleId = role.id;
                 await job.save();
-
-                return interaction.reply({
-                    embeds: [createEmbed('✅ Job Updated', `Job **${name}** updated successfully.`)]
-                });
-            }
-
-            if (action === 'remove') {
-                const job = await Job.findOneAndDelete({ name });
-                if (!job) return interaction.reply({ embeds: [createEmbed('❌ Job Not Found', 'No job with that name exists!', '#FF0000')] });
-                return interaction.reply({
-                    embeds: [createEmbed('🗑️ Job Deleted', `Job **${name}** has been deleted from the system.`)]
-                });
-            }
-        }
-
-        // User Management
-        if (subcommand === 'user') {
-            const targetUser = interaction.options.getUser('target');
-            let user = await User.findOne({ _id: targetUser.id });
-
-            if (action === 'set_job') {
-                const jobName = interaction.options.getString('job');
-                const job = await Job.findOne({ name: jobName });
-                if (!job) return interaction.reply({ embeds: [createEmbed('❌ Job Not Found', 'The job you want to assign does not exist!', '#FF0000')] });
-
-                if (!user) user = await User.create({ _id: targetUser.id, job: jobName});
-                else {
-                    user.job = jobName;
-                    await user.save();
-                }
-
-                return interaction.reply({
-                    embeds: [createEmbed('✅ Job Set', `${targetUser.username} is now a **${jobName}**.`)]
-                });
-            }
-
-            if (action === 'modify_gold') {
-                const amount = Math.ceil(interaction.options.getInteger('amount'));
-                if (!user) return interaction.reply({ embeds: [createEmbed('❌ User Not Found', 'User not found in database!', '#FF0000')] });
-
-                user.gold += amount;
-                await user.save();
-
-                return interaction.reply({
-                    embeds: [createEmbed('💰 Gold Modified', `Updated **${targetUser.username}**'s balance by **${amount}** gold. New balance: **${user.gold}**.`)]
-                });
-            }
-
-            if (action === 'delete') {
-                await User.findOneAndDelete({ _id: targetUser.id });
-                return interaction.reply({
-                    embeds: [createEmbed('🗑️ User Deleted', `${targetUser.username} has been deleted from the database.`)]
-                });
-            }
-        }
-
-        // Shop Management
-        if (subcommand === 'shop') {
-            const name = interaction.options.getString('name');
-            const maxEmployees = interaction.options.getInteger('maxemployees');
-            const weeklyPay = Math.floor(interaction.options.getInteger('weeklypay'));
-            const governmentPayments = Math.floor(interaction.options.getInteger('governmentpayments'))
-            const governmentTaxes = interaction.options.getInteger('governmenttaxes');
-
-            if (action === 'create') {
-                await Shop.create({ 
-                    name, 
-                    maxEmployees, 
-                    employees: [], // Start with no employees
-                    weeklyPay, 
-                    governmentPayments, 
-                    governmentTaxes 
-                });
-
-                return interaction.reply({
-                    embeds: [createEmbed('✅ Shop Created', `Shop **${name}** created with **${maxEmployees}** max employees.`)]
-                });
-            }
-
-            if (action === 'update') {
-                const shop = await Shop.findOne({ name });
-                if (!shop) return interaction.reply({ embeds: [createEmbed('❌ Shop Not Found', 'No shop with that name exists!', '#FF0000')] });
-
-                if (maxEmployees !== null) shop.maxEmployees = maxEmployees;
-                if (weeklyPay !== null) shop.weeklyPay = weeklyPay;
-                if (governmentPayments !== null) shop.governmentPayments = governmentPayments;
-                if (governmentTaxes !== null) shop.governmentTaxes = governmentTaxes;
-
-                await shop.save();
-
-                return interaction.reply({
-                    embeds: [createEmbed('✅ Shop Updated', `Shop **${name}** updated successfully.`)]
-                });
-            }
-
-            if (action === 'remove') {
-                const shop = await Shop.findOneAndDelete({ name });
-                if (!shop) return interaction.reply({ embeds: [createEmbed('❌ Shop Not Found', 'No shop with that name exists!', '#FF0000')] });
-                return interaction.reply({
-                    embeds: [createEmbed('🗑️ Shop Deleted', `Shop **${name}** has been deleted from the system.`)]
-                });
+                
+                return interaction.reply(`✅ Job **${name}** updated with new base pay: **${basePay}**, role: ${role ? role.name : 'None'}.`);
             }
         }
     }
