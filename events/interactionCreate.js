@@ -9,7 +9,22 @@ module.exports = {
         const timestamp = new Date().toISOString();
 
         // Log full command including options/arguments
-        const commandDetails = interaction.options.data.map(option => `${option.name}:${option.value}`).join(', ') || 'No options';
+        let commandDetails = '';
+        if (interaction.options.data && interaction.options.data.length > 0) {
+            commandDetails = interaction.options.data
+                .map(option => {
+                    // Check if the option has nested options (like 'view_user')
+                    if (option.options && option.options.length > 0) {
+                        return `${option.name}:${option.options.map(opt => `${opt.name}:${opt.value}`).join(', ')}`;
+                    }
+                    // If it's a simple option
+                    const value = option.value ? option.value : 'No value provided';
+                    return `${option.name}:${value}`;
+                })
+                .join(', ');
+        } else {
+            commandDetails = 'No options';
+        }
 
         console.log(`[${timestamp}] 📩 Received command: /${interaction.commandName} ${commandDetails} from ${user} in ${guild} (${channel})`);
 
