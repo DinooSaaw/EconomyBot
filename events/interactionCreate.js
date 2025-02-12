@@ -6,7 +6,10 @@ module.exports = {
         const user = interaction.user.tag;
         const guild = interaction.guild ? interaction.guild.name : 'Direct Messages';
         const channel = interaction.channel ? `#${interaction.channel.name}` : 'DMs';
-        const timestamp = new Date().toISOString();
+        const timestamp = new Date().toLocaleString('en-US', {
+            weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+        });
 
         // Log full command including options/arguments
         let commandDetails = '';
@@ -35,7 +38,7 @@ module.exports = {
         }
 
         try {
-            console.log(`[${timestamp}] ▶️ Executing command: /${interaction.commandName} ${commandDetails} by ${user} in ${guild} (${channel})`);
+            console.log(`[${timestamp}] ▶️  Executing command: /${interaction.commandName} ${commandDetails} by ${user} in ${guild} (${channel})`);
             await command.execute(interaction);
             console.log(`[${timestamp}] ✅ Successfully executed command: /${interaction.commandName} ${commandDetails} by ${user} in ${guild} (${channel})`);
         } catch (error) {

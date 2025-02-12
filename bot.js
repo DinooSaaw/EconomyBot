@@ -3,6 +3,11 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const mongoose = require('mongoose');
 const fs = require('fs');
 
+const timestamp = new Date().toLocaleString('en-US', {
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+});
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 client.events = new Collection();
@@ -26,8 +31,8 @@ fs.readdirSync('./events').forEach(file => {
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ Successfully connected to MongoDB'))
-    .catch((err) => console.error('❌ MongoDB connection error:', err));
+    .then(() => console.log(`[${timestamp}] ✅ Successfully connected to MongoDB`))
+    .catch((err) => console.error(`[${timestamp}] ❌ MongoDB connection error:`, err));
 
 // Login
 client.login(process.env.TOKEN);

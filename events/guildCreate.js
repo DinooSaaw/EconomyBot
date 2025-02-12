@@ -1,5 +1,8 @@
 const GuildSettings = require('../models/Settings');
-
+const timestamp = new Date().toLocaleString('en-US', {
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+});
 module.exports = {
     name: 'guildCreate',
     async execute(guild, client) {
@@ -14,7 +17,7 @@ module.exports = {
             });
 
             await settings.save();
-            console.log(`✅ Created default settings for ${guild.name} (${guild.id})`);
+            console.log(`[${timestamp}] ✅ Created default settings for ${guild.name} (${guild.id})`);
         }
     }
 };
