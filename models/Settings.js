@@ -17,6 +17,10 @@ const GuildSettingsSchema = new mongoose.Schema({
     admin: {
         allowedRoles: { type: [String], default: [] },
         allowedUsers: { type: [String], default: [] }
+    },
+    taxes: {
+        incomeTax: { type: Number, default: 10 }, // Default 10% income tax
+        gst: { type: Number, default: 5 }, // Default 5% GST
     }
 });
 
