@@ -107,7 +107,7 @@ module.exports = {
         //                 .setDescription('Government taxes for this shop (only for create/update)')
         //         )
         // ),
-
+        
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
         const action = interaction.options.getString('action');
@@ -144,6 +144,19 @@ module.exports = {
             if (action === 'remove') {
                 const job = await Job.findOne({ name });
                 if (!job) return interaction.reply(`❌ Job **${name}** not found.`);
+                
+                // Find all users with the role assigned to this job and remove their job
+                const usersWithRole = await User.find({ job: job.name });
+                if (usersWithRole.length > 0) {
+                    // Remove job from all users who have it
+                    for (const user of usersWithRole) {
+                        user.job = null; // Remove job from the user
+                        await user.save();
+                    }
+                    return interaction.reply(`✅ Job **${name}** removed. All users with this job have had their job removed.`);
+                }
+                
+                // Proceed to delete the job after removing from users
                 await job.deleteOne({ name });
                 return interaction.reply(`✅ Job **${name}** removed.`);
             }
@@ -185,44 +198,44 @@ module.exports = {
             }
         }
 
-        // Shop Management
-        if (subcommand === 'shop') {
-            const name = interaction.options.getString('name');
-            const maxEmployees = interaction.options.getInteger('maxemployees');
-            const weeklyPay = interaction.options.getInteger('weeklypay');
-            const governmentPayments = interaction.options.getInteger('governmentpayments');
-            const governmentTaxes = interaction.options.getInteger('governmenttaxes');
+        // Shop Management (Currently commented out)
+        // if (subcommand === 'shop') {
+        //     const name = interaction.options.getString('name');
+        //     const maxEmployees = interaction.options.getInteger('maxemployees');
+        //     const weeklyPay = interaction.options.getInteger('weeklypay');
+        //     const governmentPayments = interaction.options.getInteger('governmentpayments');
+        //     const governmentTaxes = interaction.options.getInteger('governmenttaxes');
             
-            if (action === 'create') {
-                await Shop.create({ 
-                    name, 
-                    maxEmployees, 
-                    weeklyPay, 
-                    governmentPayments, 
-                    governmentTaxes
-                });
-                return interaction.reply(`✅ Shop **${name}** created with **${maxEmployees}** max employees, **${weeklyPay}** weekly pay, government payments: **${governmentPayments}**, and taxes: **${governmentTaxes}**.`);
-            }
+        //     if (action === 'create') {
+        //         await Shop.create({ 
+        //             name, 
+        //             maxEmployees, 
+        //             weeklyPay, 
+        //             governmentPayments, 
+        //             governmentTaxes
+        //         });
+        //         return interaction.reply(`✅ Shop **${name}** created with **${maxEmployees}** max employees, **${weeklyPay}** weekly pay, government payments: **${governmentPayments}**, and taxes: **${governmentTaxes}**.`);
+        //     }
             
-            if (action === 'update') {
-                const shop = await Shop.findOne({ name });
-                if (!shop) return interaction.reply(`❌ Shop **${name}** not found.`);
+        //     if (action === 'update') {
+        //         const shop = await Shop.findOne({ name });
+        //         if (!shop) return interaction.reply(`❌ Shop **${name}** not found.`);
                 
-                if (maxEmployees !== null) shop.maxEmployees = maxEmployees;
-                if (weeklyPay !== null) shop.weeklyPay = weeklyPay;
-                if (governmentPayments !== null) shop.governmentPayments = governmentPayments;
-                if (governmentTaxes !== null) shop.governmentTaxes = governmentTaxes;
-                await shop.save();
+        //         if (maxEmployees !== null) shop.maxEmployees = maxEmployees;
+        //         if (weeklyPay !== null) shop.weeklyPay = weeklyPay;
+        //         if (governmentPayments !== null) shop.governmentPayments = governmentPayments;
+        //         if (governmentTaxes !== null) shop.governmentTaxes = governmentTaxes;
+        //         await shop.save();
                 
-                return interaction.reply(`✅ Shop **${name}** updated.`);
-            }
+        //         return interaction.reply(`✅ Shop **${name}** updated.`);
+        //     }
 
-            if (action === 'remove') {
-                const shop = await Shop.findOne({ name });
-                if (!shop) return interaction.reply(`❌ Shop **${name}** not found.`);
-                await shop.deleteOne({name});
-                return interaction.reply(`✅ Shop **${name}** removed.`);
-            }
-        }
+        //     if (action === 'remove') {
+        //         const shop = await Shop.findOne({ name });
+        //         if (!shop) return interaction.reply(`❌ Shop **${name}** not found.`);
+        //         await shop.deleteOne({name});
+        //         return interaction.reply(`✅ Shop **${name}** removed.`);
+        //     }
+        // }
     }
 };
