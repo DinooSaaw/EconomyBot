@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../models/User');
 const Job = require('../models/Job');
-const User = require('../models/User');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -69,7 +68,7 @@ module.exports = {
         treasury.gold += tax; // Add tax to treasury
         await user.save();
         await treasury.save();
-        
+
         const salaryEmbed = new EmbedBuilder()
             .setColor('#FFD700') // Gold color
             .setTitle('💰 Salary!')
