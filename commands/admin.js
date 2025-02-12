@@ -4,6 +4,11 @@ const Job = require('../models/Job');
 const Shop = require('../models/Shop');
 const GuildSettings = require("../models/Settings");
 
+// Helper function to check if a number is a whole number
+function isWholeNumber(value) {
+    return Number.isInteger(value) && value > 0; // Checks if the value is a positive whole number
+}
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('admin')
@@ -67,7 +72,7 @@ module.exports = {
                 )
                 .addIntegerOption(option =>
                     option.setName('amount')
-                        .setDescription('Gold amount (only for modify_gold)')
+                        .setDescription('Modify the gold balance (does not set, only modifies; applies only to modify_gold).')
                 )
         ),
 
@@ -107,7 +112,7 @@ module.exports = {
         //                 .setDescription('Government taxes for this shop (only for create/update)')
         //         )
         // ),
-        
+
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
         const action = interaction.options.getString('action');
@@ -119,6 +124,14 @@ module.exports = {
             const role = interaction.options.getRole('role');
             const tax = interaction.options.getInteger('tax');
             
+            if (basePay !== null && !isWholeNumber(basePay)) {
+                return interaction.reply(`❌ The base pay must be a positive whole number.`);
+            }
+
+            if (tax !== null && !isWholeNumber(tax)) {
+                return interaction.reply(`❌ The tax amount must be a positive whole number.`);
+            }
+
             if (action === 'create') {
                 await Job.create({ 
                     name, 
@@ -185,6 +198,10 @@ module.exports = {
                 const user = await User.findOne({ _id: target.id });
                 if (!user) return interaction.reply(`❌ User **${target.username}** not found.`);
                 
+                if (amount !== null && !Number.isInteger(amount)) {
+                    return interaction.reply(`❌ The gold balance must be an integer value (it can be negative).`);
+                }                
+
                 user.gold += amount;
                 await user.save();
                 return interaction.reply(`✅ Gold for **${target.username}** updated. New balance: **${user.gold}**.`);
