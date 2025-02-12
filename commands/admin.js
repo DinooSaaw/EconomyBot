@@ -69,44 +69,44 @@ module.exports = {
                     option.setName('amount')
                         .setDescription('Gold amount (only for modify_gold)')
                 )
-        )
+        ),
 
         // Shop Management Subcommand
-        .addSubcommand(subcommand =>
-            subcommand.setName('shop')
-                .setDescription('Manage shops in the economy system.')
-                .addStringOption(option =>
-                    option.setName('action')
-                        .setDescription('What do you want to do?')
-                        .setRequired(true)
-                        .addChoices(
-                            { name: 'Create', value: 'create' },
-                            { name: 'Remove', value: 'remove' },
-                            { name: 'Update', value: 'update' }
-                        )
-                )
-                .addStringOption(option =>
-                    option.setName('name')
-                        .setDescription('Shop name (required for create, update, remove)')
-                        .setRequired(true)
-                )
-                .addIntegerOption(option =>
-                    option.setName('maxemployees')
-                        .setDescription('Maximum number of employees for this shop (only for create/update)')
-                )
-                .addIntegerOption(option =>
-                    option.setName('weeklypay')
-                        .setDescription('Weekly pay for this shop (only for create/update)')
-                )
-                .addIntegerOption(option =>
-                    option.setName('governmentpayments')
-                        .setDescription('Government payments for this shop (only for create/update)')
-                )
-                .addIntegerOption(option =>
-                    option.setName('governmenttaxes')
-                        .setDescription('Government taxes for this shop (only for create/update)')
-                )
-        ),
+        // .addSubcommand(subcommand =>
+        //     subcommand.setName('shop')
+        //         .setDescription('Manage shops in the economy system.')
+        //         .addStringOption(option =>
+        //             option.setName('action')
+        //                 .setDescription('What do you want to do?')
+        //                 .setRequired(true)
+        //                 .addChoices(
+        //                     { name: 'Create', value: 'create' },
+        //                     { name: 'Remove', value: 'remove' },
+        //                     { name: 'Update', value: 'update' }
+        //                 )
+        //         )
+        //         .addStringOption(option =>
+        //             option.setName('name')
+        //                 .setDescription('Shop name (required for create, update, remove)')
+        //                 .setRequired(true)
+        //         )
+        //         .addIntegerOption(option =>
+        //             option.setName('maxemployees')
+        //                 .setDescription('Maximum number of employees for this shop (only for create/update)')
+        //         )
+        //         .addIntegerOption(option =>
+        //             option.setName('weeklypay')
+        //                 .setDescription('Weekly pay for this shop (only for create/update)')
+        //         )
+        //         .addIntegerOption(option =>
+        //             option.setName('governmentpayments')
+        //                 .setDescription('Government payments for this shop (only for create/update)')
+        //         )
+        //         .addIntegerOption(option =>
+        //             option.setName('governmenttaxes')
+        //                 .setDescription('Government taxes for this shop (only for create/update)')
+        //         )
+        // ),
 
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
