@@ -183,7 +183,14 @@ module.exports = {
             if (action === 'set_job') {
                 const jobName = interaction.options.getString('job');
                 const user = await User.findOne({ _id: target.id });
-                if (!user) return interaction.reply(`❌ User **${target.username}** not found.`);
+                if (!user) {
+                    var job = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
+                    user = await User.create({
+                        _id: interaction.user.id,
+                        name: interaction.user.username,
+                        job: job ? job.name : null,
+                    });
+                }
                 
                 const job = await Job.findOne({ name: jobName });
                 if (!job) return interaction.reply(`❌ Job **${jobName}** not found.`);
@@ -196,7 +203,14 @@ module.exports = {
             if (action === 'modify_gold') {
                 const amount = interaction.options.getInteger('amount');
                 const user = await User.findOne({ _id: target.id });
-                if (!user) return interaction.reply(`❌ User **${target.username}** not found.`);
+                if (!user) {
+                    var job = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
+                    user = await User.create({
+                        _id: interaction.user.id,
+                        name: interaction.user.username,
+                        job: job ? job.name : null,
+                    });
+                }
                 
                 if (amount !== null && !Number.isInteger(amount)) {
                     return interaction.reply(`❌ The gold balance must be an integer value (it can be negative).`);
