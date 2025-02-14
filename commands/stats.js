@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../models/User");
 const Job = require("../models/Job");
-const Trade = require("../models/Trade");  // Assuming you have a trade model
-const { getUptime } = require("../utils/uptime");  // Assuming you have an uptime utility
 
 module.exports = {
   data: new SlashCommandBuilder()
