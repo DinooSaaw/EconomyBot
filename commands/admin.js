@@ -184,11 +184,12 @@ module.exports = {
                 const jobName = interaction.options.getString('job');
                 const user = await User.findOne({ _id: target.id });
                 if (!user) {
-                    var job = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
+                    var userData = await interaction.guild.members.fetch(target);
+                    let Userjob = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
                     user = await User.create({
-                        _id: interaction.user.id,
-                        name: interaction.user.username,
-                        job: job ? job.name : null,
+                        _id: userData.user.id,
+                        name: userData.user.username,
+                        job: Userjob ? Userjob.name : null,
                     });
                 }
                 
@@ -204,11 +205,12 @@ module.exports = {
                 const amount = interaction.options.getInteger('amount');
                 const user = await User.findOne({ _id: target.id });
                 if (!user) {
-                    var job = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
+                    var userData = await interaction.guild.members.fetch(target);
+                    let Userjob = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
                     user = await User.create({
-                        _id: interaction.user.id,
-                        name: interaction.user.username,
-                        job: job ? job.name : null,
+                        _id: userData.user.id,
+                        name: userData.user.username,
+                        job: Userjob ? Userjob.name : null,
                     });
                 }
                 
