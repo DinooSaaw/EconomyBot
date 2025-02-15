@@ -1,14 +1,28 @@
-// Models/Shop.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const shopSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    maxEmployees: { type: Number, required: true }, // Maximum number of employees allowed
-    employees: { type: [String], default: [] }, // Array to store employee IDs
-    weeklyPay: { type: Number, required: true },
-    governmentPayments: { type: Number, required: true },
-    governmentTaxes: { type: Number, required: true },
-    owner: { id: { type: String }, name: { type: String } }, // Use String for ID if it’s a user ID
+const ShopSchema = new mongoose.Schema({
+  _id: String, // Shop ID (same as Discord Guild ID or custom ID)
+  name: String, // Shop Name
+  owner: {
+    id: String, // Discord User ID of the owner
+    username: String, // Discord Username of the owner
+  },
+  wallet: Number, // Gold balance of the shop
+  salary: Number, // Amount the shop receives when claimed
+  maxEmployees: Number, // Maximum number of employees the shop can have
+  staff: [
+    {
+      userId: String, // Staff Member's ID
+      salary: Number, // Salary they receive from shop
+    },
+  ],
+  inventory: [
+    {
+      itemName: String,
+      price: Number,
+      quantity: Number,
+    },
+  ],
 });
 
-module.exports = mongoose.model('Shop', shopSchema);
+module.exports = mongoose.model("Shop", ShopSchema);
