@@ -8,9 +8,14 @@ module.exports = {
     .setName("shop")
     .setDescription("Manage and interact with shops.")
     .addSubcommand((sub) =>
-      sub.setName("info").setDescription("View shop details.")
+      sub
+        .setName("info")
+        .setDescription("View shop details.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(false)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(false)
         )
     )
     .addSubcommand((sub) =>
@@ -18,7 +23,10 @@ module.exports = {
         .setName("claim_salary")
         .setDescription("Claim shop salary as the owner.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(true)
         )
     )
     .addSubcommand((sub) =>
@@ -26,7 +34,10 @@ module.exports = {
         .setName("set_owner")
         .setDescription("Set the owner of a shop.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(true)
         )
         .addUserOption((opt) =>
           opt.setName("owner").setDescription("The new owner").setRequired(true)
@@ -37,7 +48,10 @@ module.exports = {
         .setName("add_staff")
         .setDescription("Add a staff member to the shop.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(true)
         )
         .addUserOption((opt) =>
           opt
@@ -54,7 +68,10 @@ module.exports = {
         .setName("remove_staff")
         .setDescription("Remove a staff member from the shop.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(true)
         )
         .addUserOption((opt) =>
           opt
@@ -68,7 +85,10 @@ module.exports = {
         .setName("post_item")
         .setDescription("Post an item for sale.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(true)
         )
         .addStringOption((opt) =>
           opt.setName("item").setDescription("Item name").setRequired(true)
@@ -77,9 +97,10 @@ module.exports = {
           opt.setName("price").setDescription("Item price").setRequired(true)
         )
         .addNumberOption((opt) =>
-          opt.setName("quantity")
-          .setDescription("Item quantity")
-          .setRequired(true)
+          opt
+            .setName("quantity")
+            .setDescription("Item quantity")
+            .setRequired(true)
         )
     )
     .addSubcommand((sub) =>
@@ -87,13 +108,19 @@ module.exports = {
         .setName("buy_item")
         .setDescription("Buy an item from the shop.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(true)
         )
         .addStringOption((opt) =>
           opt.setName("item").setDescription("Item name").setRequired(true)
         )
         .addNumberOption((opt) =>
-          opt.setName("quantity").setDescription("Quantity to buy").setRequired(true)
+          opt
+            .setName("quantity")
+            .setDescription("Quantity to buy")
+            .setRequired(true)
         )
     )
     .addSubcommand((sub) =>
@@ -101,7 +128,10 @@ module.exports = {
         .setName("request_salary")
         .setDescription("Request salary from the shop (staff only).")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's name")
+            .setRequired(true)
         )
     )
     .addSubcommand((sub) =>
@@ -109,10 +139,16 @@ module.exports = {
         .setName("change_name")
         .setDescription("Change the shop's name.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's current name").setRequired(true)
+          opt
+            .setName("shop_name")
+            .setDescription("The shop's current name")
+            .setRequired(true)
         )
         .addStringOption((opt) =>
-          opt.setName("new_name").setDescription("The new shop name").setRequired(true)
+          opt
+            .setName("new_name")
+            .setDescription("The new shop name")
+            .setRequired(true)
         )
     ),
 
@@ -142,9 +178,9 @@ module.exports = {
           });
         }
 
-        const shopList = allShops.map(
-          (shop) => `${shop.name} - Owned by <@${shop.owner.id}>`
-        ).join("\n");
+        const shopList = allShops
+          .map((shop) => `${shop.name} - Owned by <@${shop.owner.id}>`)
+          .join("\n");
 
         const embed = new EmbedBuilder()
           .setTitle("All Shops")
@@ -164,7 +200,8 @@ module.exports = {
         shop.staff.some((staff) => staff.userId === interaction.user.id);
 
       const staffList =
-        shop.staff.map((s) => `<@${s.userId}>: ${s.salary}g`).join("\n") || "None";
+        shop.staff.map((s) => `<@${s.userId}>: ${s.salary}g`).join("\n") ||
+        "None";
       const inventoryList =
         shop.inventory
           .map(
@@ -195,7 +232,9 @@ module.exports = {
         inline: false,
       });
 
-      const embed = new EmbedBuilder().setTitle(`${shop.name}`).addFields(embedFields);
+      const embed = new EmbedBuilder()
+        .setTitle(`${shop.name}`)
+        .addFields(embedFields);
 
       return interaction.reply({ embeds: [embed] });
     }
@@ -244,6 +283,18 @@ module.exports = {
 
       const staff = interaction.options.getUser("staff");
       const salary = interaction.options.getNumber("salary");
+
+      // Check if the shop has a maxEmployees cap
+      if (
+        shop.maxEmployees !== null &&
+        shop.staff.length >= shop.maxEmployees
+      ) {
+        return interaction.reply({
+          content: `❌ This shop has reached the maximum number of staff members (${shop.maxEmployees}).`,
+          ephemeral: true,
+        });
+      }
+
       shop.staff.push({ userId: staff.id, salary });
       await shop.save();
       return interaction.reply({
@@ -260,9 +311,7 @@ module.exports = {
       }
 
       const staff = interaction.options.getUser("staff");
-      const staffIndex = shop.staff.findIndex(
-        (s) => s.userId === staff.id
-      );
+      const staffIndex = shop.staff.findIndex((s) => s.userId === staff.id);
 
       if (staffIndex === -1) {
         return interaction.reply({

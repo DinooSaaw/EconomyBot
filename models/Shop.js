@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const ShopSchema = new mongoose.Schema({
-  _id: String, // Shop ID (same as Discord Guild ID or custom ID)
   name: String, // Shop Name
   owner: {
     id: String, // Discord User ID of the owner
