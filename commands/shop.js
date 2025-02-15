@@ -10,7 +10,7 @@ module.exports = {
     .addSubcommand((sub) =>
       sub.setName("info").setDescription("View shop details.")
         .addStringOption((opt) =>
-          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+          opt.setName("shop_name").setDescription("The shop's name").setRequired(false)
         )
     )
     .addSubcommand((sub) =>
@@ -47,6 +47,20 @@ module.exports = {
         )
         .addNumberOption((opt) =>
           opt.setName("salary").setDescription("Their salary").setRequired(true)
+        )
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName("remove_staff")
+        .setDescription("Remove a staff member from the shop.")
+        .addStringOption((opt) =>
+          opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
+        )
+        .addUserOption((opt) =>
+          opt
+            .setName("staff")
+            .setDescription("The staff member")
+            .setRequired(true)
         )
     )
     .addSubcommand((sub) =>
@@ -89,6 +103,17 @@ module.exports = {
         .addStringOption((opt) =>
           opt.setName("shop_name").setDescription("The shop's name").setRequired(true)
         )
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName("change_name")
+        .setDescription("Change the shop's name.")
+        .addStringOption((opt) =>
+          opt.setName("shop_name").setDescription("The shop's current name").setRequired(true)
+        )
+        .addStringOption((opt) =>
+          opt.setName("new_name").setDescription("The new shop name").setRequired(true)
+        )
     ),
 
   async execute(interaction) {
@@ -104,7 +129,30 @@ module.exports = {
       });
     }
 
+    const isOwner = shop && shop.owner.id === userId;
+
     if (subcommand === "info") {
+      if (!shopName) {
+        // Display a list of all shops
+        const allShops = await Shop.find({});
+        if (allShops.length === 0) {
+          return interaction.reply({
+            content: "No shops available.",
+            ephemeral: true,
+          });
+        }
+
+        const shopList = allShops.map(
+          (shop) => `${shop.name} - Owned by <@${shop.owner.id}>`
+        ).join("\n");
+
+        const embed = new EmbedBuilder()
+          .setTitle("All Shops")
+          .setDescription(shopList);
+
+        return interaction.reply({ embeds: [embed] });
+      }
+
       if (!shop)
         return interaction.reply({
           content: "No shop found.",
@@ -169,14 +217,14 @@ module.exports = {
     }
 
     if (subcommand === "set_owner") {
-      const newOwner = interaction.options.getUser("owner");
-
-      if (shop.owner.id !== interaction.user.id) {
+      if (!isOwner) {
         return interaction.reply({
           content: "❌ You are not the owner of this shop.",
           ephemeral: true,
         });
       }
+
+      const newOwner = interaction.options.getUser("owner");
 
       shop.owner = { id: newOwner.id, username: newOwner.username };
       await shop.save();
@@ -187,12 +235,47 @@ module.exports = {
     }
 
     if (subcommand === "add_staff") {
+      if (!isOwner) {
+        return interaction.reply({
+          content: "❌ You must be the owner to add staff.",
+          ephemeral: true,
+        });
+      }
+
       const staff = interaction.options.getUser("staff");
       const salary = interaction.options.getNumber("salary");
       shop.staff.push({ userId: staff.id, salary });
       await shop.save();
       return interaction.reply({
         content: `Added ${staff.username} as staff with salary ${salary}g.`,
+      });
+    }
+
+    if (subcommand === "remove_staff") {
+      if (!isOwner) {
+        return interaction.reply({
+          content: "❌ You must be the owner to remove staff.",
+          ephemeral: true,
+        });
+      }
+
+      const staff = interaction.options.getUser("staff");
+      const staffIndex = shop.staff.findIndex(
+        (s) => s.userId === staff.id
+      );
+
+      if (staffIndex === -1) {
+        return interaction.reply({
+          content: "This user is not a staff member of the shop.",
+          ephemeral: true,
+        });
+      }
+
+      shop.staff.splice(staffIndex, 1);
+      await shop.save();
+
+      return interaction.reply({
+        content: `Removed ${staff.username} from staff.`,
       });
     }
 
@@ -287,6 +370,23 @@ module.exports = {
       return interaction.reply({
         content: `Salary of ${staffMember.salary}g paid to you.`,
         ephemeral: true,
+      });
+    }
+
+    if (subcommand === "change_name") {
+      if (!isOwner) {
+        return interaction.reply({
+          content: "❌ You must be the owner to change the shop's name.",
+          ephemeral: true,
+        });
+      }
+
+      const newName = interaction.options.getString("new_name");
+      shop.name = newName;
+      await shop.save();
+
+      return interaction.reply({
+        content: `Shop name changed to **${newName}**.`,
       });
     }
   },
