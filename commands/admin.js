@@ -126,6 +126,25 @@ module.exports = {
         .addUserOption((option) =>
           option.setName("owner").setDescription("The owner of the shop")
         )
+    )
+
+    // Transfer Shop Ownership Subcommand
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("transfer_owner")
+        .setDescription("Transfer ownership of a shop to another user.")
+        .addStringOption((option) =>
+          option
+            .setName("shop_name")
+            .setDescription("The name of the shop to transfer ownership")
+            .setRequired(true)
+        )
+        .addUserOption((option) =>
+          option
+            .setName("new_owner")
+            .setDescription("The new owner of the shop")
+            .setRequired(true)
+        )
     ),
 
   async execute(interaction) {
@@ -324,6 +343,29 @@ module.exports = {
         await shop.deleteOne({ name });
         return interaction.reply(`✅ Shop **${name}** removed.`);
       }
+    }
+
+    // Transfer Shop Ownership
+    if (subcommand === "transfer_owner") {
+      const shopName = interaction.options.getString("shop_name");
+      const newOwner = interaction.options.getUser("new_owner");
+
+      const shop = await Shop.findOne({ name: shopName });
+      if (!shop) return interaction.reply(`❌ Shop **${shopName}** not found.`);
+
+      if (shop.owner.id === newOwner.id) {
+        return interaction.reply(
+          `❌ The new owner is already the owner of this shop.`
+        );
+      }
+
+      shop.owner.id = newOwner.id;
+      shop.owner.username = newOwner.username;
+      await shop.save();
+
+      return interaction.reply(
+        `✅ Shop **${shopName}** ownership transferred to **${newOwner.username}**.`
+      );
     }
   },
 };
