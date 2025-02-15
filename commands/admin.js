@@ -186,10 +186,10 @@ module.exports = {
                 if (!user) {
                     var userData = await interaction.guild.members.fetch(target);
                     let Userjob = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
-                    user = await User.create({
+                    NewUser = await User.create({
                         _id: userData.user.id,
                         name: userData.user.username,
-                        job: Userjob ? Userjob.name : null,
+                        job: Userjob ? Userjob.name : "",
                     });
                 }
                 
@@ -207,10 +207,10 @@ module.exports = {
                 if (!user) {
                     var userData = await interaction.guild.members.fetch(target);
                     let Userjob = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
-                    user = await User.create({
+                    NewUser = await User.create({
                         _id: userData.user.id,
                         name: userData.user.username,
-                        job: Userjob ? Userjob.name : null,
+                        job: Userjob ? Userjob.name : "",
                     });
                 }
                 
