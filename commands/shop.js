@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const Shop = require("../models/Shop");
 const User = require("../models/User"); // Assuming User model is available
-const GuildSettings = require("../models/GuildSettings"); // Assuming GuildSettings model is available
 
 module.exports = {
   data: new SlashCommandBuilder()
