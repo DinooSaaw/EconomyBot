@@ -329,16 +329,29 @@ module.exports = {
     }
 
     if (subcommand === "post_item") {
-      const itemName = interaction.options.getString("item");
-      const price = interaction.options.getNumber("price");
-      const quantity = interaction.options.getNumber("quantity");
-
-      shop.inventory.push({ itemName, price, quantity });
-      await shop.save();
-      return interaction.reply({
-        content: `Added ${quantity}x ${itemName} for ${price}g each.`,
-      });
-    }
+        const itemName = interaction.options.getString("item");
+        const price = interaction.options.getNumber("price");
+        const quantity = interaction.options.getNumber("quantity");
+      
+        // Check if the user is the owner or staff
+        const userIsStaffOrOwner =
+          shop.owner.id === interaction.user.id ||
+          shop.staff.some((staff) => staff.userId === interaction.user.id);
+      
+        if (!userIsStaffOrOwner) {
+          return interaction.reply({
+            content: "You must be the owner or a staff member to post items.",
+            ephemeral: true,
+          });
+        }
+      
+        shop.inventory.push({ itemName, price, quantity });
+        await shop.save();
+        return interaction.reply({
+          content: `Added ${quantity}x ${itemName} for ${price}g each.`,
+        });
+      }
+      
 
     if (subcommand === "buy_item") {
       const itemName = interaction.options.getString("item");
