@@ -11,15 +11,21 @@ module.exports = {
     // Fetch statistics
     const totalUsers = await User.countDocuments();
     const totalJobs = await Job.countDocuments();
-    const totalGold = await User.aggregate([{ $group: { _id: null, totalGold: { $sum: "$gold" } } }]);
     
+    // Total Gold in Circulation
+    const totalGold = await User.aggregate([{ $group: { _id: null, totalGold: { $sum: "$gold" } } }]);
+    const totalGoldWithoutTreasury = await User.aggregate([
+      { $match: { _id: { $ne: "treasury" } } },
+      { $group: { _id: null, totalGold: { $sum: "$gold" } } }
+    ]);
+
     const goldInCirculation = totalGold.length > 0 ? totalGold[0].totalGold : 0;
-    const avgGoldPerUser = totalUsers > 0 ? goldInCirculation / totalUsers : 0;
+    const goldWithoutTreasury = totalGoldWithoutTreasury.length > 0 ? totalGoldWithoutTreasury[0].totalGold : 0;
+    const avgGoldPerUser = totalUsers > 0 ? goldWithoutTreasury / totalUsers : 0;
 
     // Find the richest user, excluding treasury
     const richestUser = await User.findOne({ _id: { $ne: "treasury" } }).sort({ gold: -1 });
-
-    const richestUserName = richestUser ? richestUser.username : "N/A";
+    const richestUserName = richestUser ? richestUser.name : "N/A";
     const richestUserGold = richestUser ? richestUser.gold.toLocaleString() : "N/A";
 
     // Create the embed response
@@ -32,7 +38,7 @@ module.exports = {
         { name: "Total Jobs Available", value: `${totalJobs}`, inline: true },
         { name: "Total Gold in Circulation", value: `${goldInCirculation.toLocaleString()}`, inline: false },
         { name: "Gold per User (Avg)", value: `${avgGoldPerUser.toLocaleString()}`, inline: true },
-        { name: "Richest User", value: `${richestUserName} with ${richestUserGold} gold`, inline: false }
+        { name: "Richest User", value: `__${richestUserName}__ with ${richestUserGold} gold`, inline: false }
       );
 
     return interaction.reply({ embeds: [embed] });
