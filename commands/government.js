@@ -15,11 +15,11 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName("view_user")
-        .setDescription("View a user’s information.")
-        .addUserOption((option) =>
+        .setDescription("View a character’s information.")
+        .addStringOption((option) =>
           option
             .setName("target")
-            .setDescription("The user to view")
+            .setDescription("The name of character to view")
             .setRequired(true)
         )
     ),
@@ -31,7 +31,6 @@ module.exports = {
     const member = interaction.member;
     const hasRequiredRole = member && member.roles.cache.some(role => settings.government.allowedRoles.includes(role.id));
     const isAuthorizedUser = settings.government.allowedUsers.includes(interaction.user.id);
-
 
     if (!hasRequiredRole && !isAuthorizedUser) {
       return interaction.reply({
@@ -110,12 +109,12 @@ module.exports = {
     }
 
     if (subcommand === "view_user") {
-      const targetUser = interaction.options.getUser("target");
-      let user = await User.findOne({ _id: targetUser.id });
+      const targetName = interaction.options.getString("target");
+      let user = await User.findOne({ name: targetName });
 
       if (!user) {
         return interaction.reply({
-          content: `User **${targetUser.username}** not found in the system.`,
+          content: `User **${targetName}** not found in the system.`,
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -139,11 +138,13 @@ module.exports = {
 
       // Format criminal record
       const criminalRecord = user.criminalRecord;
-
+      let guildUser = interaction.guild.members.cache.find(
+        (member) => member.id === user.owner.id
+      );
       const embed = new EmbedBuilder()
         .setColor("#00FF00")
-        .setTitle(`📋 User Data for ${targetUser.displayName}`)
-        .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
+        .setTitle(`📋 User Data for ${targetName}`)
+        .setThumbnail(guildUser.displayAvatarURL({ dynamic: true } || null ))
         .addFields(
           {
             name: "Job",
@@ -167,8 +168,8 @@ module.exports = {
 
       const embed2 = new EmbedBuilder()
         .setColor("#ff0000")
-        .setTitle(`📋 Criminal Record for ${targetUser.displayName}`)
-        .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }));
+        .setTitle(`📋 Criminal Record for ${targetName}`)
+        .setThumbnail(guildUser.displayAvatarURL({ dynamic: true } || null ))
 
       if (criminalRecord.length === 0) {
         embed2.setDescription("No criminal record.");
@@ -176,9 +177,7 @@ module.exports = {
         criminalRecord.forEach((crime) => {
           embed2.addFields({
             name: `Punishment: ${crime.punishmentType}`,
-            value: `**Reason:** ${crime.reason}\n**Issued By:** ${
-              crime.issuedBy
-            }\n**Issued At:** <t:${Math.floor(crime.issuedAt / 1000)}:F>`,
+            value: `**Reason:** ${crime.reason}\n**Issued By:** ${crime.issuedBy}\n**Issued At:** <t:${Math.floor(crime.issuedAt / 1000)}:F>`,
             inline: false,
           });
         });
