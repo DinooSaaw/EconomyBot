@@ -10,7 +10,12 @@ const GuildSettings = require("../models/Settings.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("balance")
-    .setDescription("Check your gold balance."),
+    .setDescription("Check a character's gold balance.")
+    .addStringOption(option =>
+      option.setName("character")
+        .setDescription("The name of your character")
+        .setRequired(true)
+    ),
   async execute(interaction) {
     let settings = await GuildSettings.findOne({ _id: interaction.guild.id });
     if (!settings) {
@@ -19,26 +24,36 @@ module.exports = {
       });
     }
 
-    // Retrieve user data
-    let user = await User.findOne({ _id: interaction.user.id });
+    const characterName = interaction.options.getString("character");
+    
+    // Retrieve character data
+    let user = await User.findOne({ name: characterName });
     if (!user) {
-      var job = await Job.findOne({ roleId: { $in: interaction.member.roles.cache.map(role => role.id) } });
-      user = await User.create({
-        _id: interaction.user.id,
-        name: interaction.user.username,
-        job: job ? job.name : null,
+      return interaction.reply({
+        content: `❌ Character **${characterName}** not found.`,
+        flags: MessageFlags.Ephemeral
       });
     }
 
-    // Check if the user has a job and if the job's role matches
+    const owner = {
+      id: interaction.user.id,
+      username: interaction.user.username,
+    };
+
+    // Check if the user is the owner of the character
+    if (user.owner.id !== owner.id) {
+      return interaction.reply({
+        content: "❌ You can only check the balance's of character you own.",
+        flags: MessageFlags.Ephemeral
+      });
+    }
 
     const balanceEmbed = new EmbedBuilder()
       .setColor("#FFD700") // Gold color
       .setTitle("💰 Balance Check")
       .setDescription(
-        `**${interaction.user.displayName}**, you have **${user.gold.toLocaleString()}** gold.`
+        `**${user.name}** has **${user.gold.toLocaleString()}** gold.`
       )
-      .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
       .setFooter({
         text: "Use /salary to collect your salary!",
         iconURL: interaction.client.user.displayAvatarURL(),
