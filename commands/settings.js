@@ -108,7 +108,7 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor("#00AAFF")
         .setTitle("⚙️ Guild Settings")
-        .setFooter({ text: "Use /settings toggle to update settings." })
+        .setFooter({ text: "Use /settings toggle to update most settings." })
         .addFields(
           {
             name: "Show Criminal Record",
@@ -134,9 +134,9 @@ module.exports = {
 
       // Add maxCharacters to the settings display
       embed.addFields({
-        name: "Max Characters for Messages",
+        name: "Max Characters per Users",
         value: settings.maxCharacters
-          ? `🔢 Set to ${settings.maxCharacters} characters`
+          ? `🔢 **${settings.maxCharacters}** characters per User`
           : "❌ Not Set",
         inline: false,
       });
