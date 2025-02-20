@@ -24,7 +24,7 @@ module.exports = {
     const avgGoldPerUser = totalUsers > 0 ? goldWithoutTreasury / totalUsers : 0;
 
     // Find the richest user, excluding treasury
-    const richestUser = await User.findOne({ _id: { $ne: "treasury" } }).sort({ gold: -1 });
+    const richestUser = await User.findOne({ name: { $ne: "treasury" } }).sort({ gold: -1 });
     const richestUserName = richestUser ? richestUser.name : "N/A";
     const richestUserGold = richestUser ? richestUser.gold.toLocaleString() : "N/A";
 
