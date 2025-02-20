@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const Character = require("../models/Character");
 const GuildSettings = require("../models/Settings");
 
@@ -74,11 +74,33 @@ module.exports = {
 
     if (subcommand === "list") {
       const characters = await Character.find({ "owner.id": owner.id });
-      const charList =
-        characters.length > 0
-          ? characters.map((c) => `${c.name}`).join("\n")
-          : "None";
-      return interaction.reply(`📜 **Character List:**\n${charList}`);
+
+      const embed = new EmbedBuilder()
+        .setColor("#0099ff")
+        .setTitle(`Character List for ${interaction.user.username}`)
+        .setDescription("Here is the list of characters you have created:")
+        .setFooter({ text: `Requested by ${interaction.user.username}` })
+        .setTimestamp();
+
+      if (characters.length > 0) {
+        embed.addFields(
+          {
+            name: "Characters:",
+            value: characters.map((c) => `**${c.name}**`).join("\n"),
+            inline: false,
+          }
+        );
+      } else {
+        embed.addFields(
+          {
+            name: "Characters:",
+            value: "No characters created yet.",
+            inline: false,
+          }
+        );
+      }
+
+      return interaction.reply({ embeds: [embed] });
     }
   },
 };
