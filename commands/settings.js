@@ -65,6 +65,18 @@ module.exports = {
         .addUserOption((option) =>
           option.setName("user").setDescription("Select a user to modify.").setRequired(false)
         )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("maxcharacters")
+        .setDescription("Set or view the maximum character limit for messages.")
+        .addIntegerOption((option) =>
+          option
+            .setName("limit")
+            .setDescription("Set the maximum character limit.")
+            .setRequired(false)
+            .setMinValue(1)
+        )
     ),
 
   async execute(interaction) {
@@ -80,7 +92,7 @@ module.exports = {
 
     if (subcommand === "reset") {
       await settings.deleteOne({ _id: guildId });
-      await new GuildSettings({ _id: guildId })
+      await new GuildSettings({ _id: guildId });
 
       return interaction.reply({
         embeds: [
@@ -121,12 +133,20 @@ module.exports = {
           }
         );
 
-      // Show command permissions
+      // Add maxCharacters to the settings display
+      embed.addFields({
+        name: "Max Characters for Messages",
+        value: settings.maxCharacters
+          ? `🔢 Set to ${settings.maxCharacters} characters`
+          : "❌ Not Set",
+        inline: false,
+      });
 
+      // Command permissions section
       const embed2 = new EmbedBuilder()
         .setColor("#00AAFF")
         .setTitle("⚙️ Command Permissions")
-        .setFooter({ text: "Use /settings modify_permissions to update roles/users permissions." })
+        .setFooter({ text: "Use /settings modify_permissions to update roles/users permissions." });
 
       const commandNames = ["fine", "government", "admin"];
       for (const command of commandNames) {
@@ -142,7 +162,6 @@ module.exports = {
           inline: true,
         });
       }
-
 
       return interaction.reply({ embeds: [embed, embed2], flags: MessageFlags.Ephemeral });
     }
@@ -239,6 +258,37 @@ module.exports = {
         ],
         flags: MessageFlags.Ephemeral,
       });
+    }
+
+    if (subcommand === "maxcharacters") {
+      const limit = interaction.options.getInteger("limit");
+
+      if (limit) {
+        settings.maxCharacters = limit;
+        await settings.save();
+
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#00FF00")
+              .setTitle("✅ Max Characters Updated")
+              .setDescription(`The maximum character limit has been set to **${limit}** characters.`),
+          ],
+          flags: MessageFlags.Ephemeral,
+        });
+      } else {
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("#00AAFF")
+              .setTitle("ℹ️ Current Max Characters Setting")
+              .setDescription(
+                `The current max characters setting is **${settings.maxCharacters || "not set"}**.`
+              ),
+          ],
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
   },
 };
