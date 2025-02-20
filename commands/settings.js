@@ -44,7 +44,6 @@ module.exports = {
             .setDescription("Select the command to modify permissions for.")
             .setRequired(true)
             .addChoices(
-              { name: "Fine", value: "fine" },
               { name: "Government", value: "government" },
               { name: "Admin", value: "admin" }
             )
@@ -148,7 +147,7 @@ module.exports = {
         .setTitle("⚙️ Command Permissions")
         .setFooter({ text: "Use /settings modify_permissions to update roles/users permissions." });
 
-      const commandNames = ["fine", "government", "admin"];
+      const commandNames = ["government", "admin"];
       for (const command of commandNames) {
         const allowedRoles = settings[command]?.allowedRoles || [];
         const allowedUsers = settings[command]?.allowedUsers || [];

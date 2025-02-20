@@ -84,7 +84,7 @@ module.exports = {
         user.gold += salary; // Subtract tax from salary
         user.lastSalary = new Date().toISOString(); // Store current timestamp in ISO format
 
-        let treasury = await User.findOne({ _id: "treasury" });
+        let treasury = await User.findOne({ name: "Treasury" });
         treasury.gold += tax; // Add tax to treasury
         await user.save();
         await treasury.save();

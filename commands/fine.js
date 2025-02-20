@@ -33,7 +33,7 @@ module.exports = {
             username: interaction.user.username,
         };
 
-        const executor = await user.findOne({ owner, job: "Guards" });
+        const executor = await User.findOne({ owner, job: "Guards" });
 
         const targetName = interaction.options.getString('target');
         const fineAmount = Math.ceil(interaction.options.getInteger('amount'));
@@ -52,7 +52,7 @@ module.exports = {
         }
 
         let target = await User.findOne({ name: targetName });
-        let treasury = await User.findOne({ _id: "treasury" });
+        let treasury = await User.findOne({ name: "Treasury" });
         if (!target) {
             return interaction.reply({
               content: `❌ Character **${characterName}** not found.`,
@@ -87,7 +87,7 @@ module.exports = {
                 { name: 'Reason', value: reason, inline: false },
                 { name: 'New Balance', value: `**${target.gold.toLocaleString()}** gold`, inline: true }
             )
-            .setFooter({ text: 'Fines must be justified and fair.', iconURL: interaction.client.user.displayAvatarURL() });
+            .setFooter({ text: 'Fines must be justified and fair.', iconURL: interaction.user.displayAvatarURL() });
 
         await interaction.reply({ embeds: [fineEmbed] });
     }

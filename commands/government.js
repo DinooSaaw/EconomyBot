@@ -71,7 +71,7 @@ module.exports = {
 
     if (subcommand === "treasury") {
       // Fetch the "treasury" user document
-      const treasury = await User.findOne({ _id: "treasury" });
+      const treasury = await User.findOne({ name: "Treasury" });
 
       if (!treasury) {
         return interaction.reply({

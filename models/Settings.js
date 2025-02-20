@@ -8,10 +8,6 @@ const GuildSettingsSchema = new mongoose.Schema({
 
     maxCharacters: { type: Number, default: 2 },
 
-    fine: {
-        allowedRoles: { type: [String], default: [] },
-        allowedUsers: { type: [String], default: [] }
-    },
     government: {
         allowedRoles: { type: [String], default: [] },
         allowedUsers: { type: [String], default: [] }
