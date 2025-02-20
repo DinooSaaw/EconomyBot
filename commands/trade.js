@@ -1,15 +1,25 @@
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  MessageFlags,
+} = require("discord.js");
 const User = require("../models/User");
 const GuildSettings = require("../models/Settings");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("trade")
-    .setDescription("Trade gold with another user.")
-    .addUserOption((option) =>
+    .setDescription("Trade gold with another character.")
+    .addStringOption((option) =>
+      option
+        .setName("sender")
+        .setDescription("Your character name")
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
       option
         .setName("target")
-        .setDescription("User to trade with")
+        .setDescription("Character name to trade with")
         .setRequired(true)
     )
     .addIntegerOption((option) =>
@@ -21,10 +31,12 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const targetUser = interaction.options.getUser("target");
+    const senderCharacterName = interaction.options.getString("sender");
+    const targetCharacterName = interaction.options.getString("target");
     const amount = Math.floor(interaction.options.getInteger("amount"));
-    const senderUser = await User.findOne({ _id: interaction.user.id });
-    let receiverUser = await User.findOne({ _id: targetUser.id });
+
+    let senderUser = await User.findOne({ name: senderCharacterName });
+    let receiverUser = await User.findOne({ name: targetCharacterName });
 
     // Fetch guild settings
     let settings = await GuildSettings.findOne({ _id: interaction.guild.id });
@@ -33,6 +45,12 @@ module.exports = {
         _id: interaction.guild.id,
       });
     }
+
+    const owner = {
+      id: interaction.user.id,
+      username: interaction.user.username,
+    };
+
     // Create an embed message function
     const createEmbed = (title, description, color = "#00FF00") => {
       return new EmbedBuilder()
@@ -51,7 +69,7 @@ module.exports = {
         embeds: [
           createEmbed(
             "❌ Sender Not Found",
-            "You do not have a profile in the economy system!",
+            `The sender character (**${senderCharacterName}**) does not exist in the economy system!`,
             "#FF0000"
           ),
         ],
@@ -65,10 +83,18 @@ module.exports = {
         embeds: [
           createEmbed(
             "❌ Receiver Not Found",
-            "The target user does not have a profile in the economy system!",
+            `The target character (**${targetCharacterName}**) does not exist in the economy system!`,
             "#FF0000"
           ),
         ],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // Check if the user is the owner of the character
+    if (senderUser.owner.id !== owner.id) {
+      return interaction.reply({
+        content: "❌ You can only trade using a character you own.",
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -79,16 +105,13 @@ module.exports = {
         embeds: [
           createEmbed(
             "❌ Insufficient Gold",
-            `You do not have enough gold to trade. You currently have **${senderUser.gold}** gold.`,
+            `The sender character (**${senderCharacterName}**) does not have enough gold to trade. They currently have **${senderUser.gold}** gold.`,
             "#FF0000"
           ),
         ],
         flags: MessageFlags.Ephemeral,
       });
     }
-
-    // Check if the receiver has enough gold to receive the trade (optional logic, adjust as needed)
-    // Here, we assume the receiver has no constraints, but you can add checks based on the receiver's balance if desired.
 
     // Perform the trade
     senderUser.gold -= amount;
@@ -99,24 +122,25 @@ module.exports = {
     await receiverUser.save();
 
     // Respond with an embed message about the trade
-
     if (settings.showTradeConfirmation) {
-        return interaction.reply({
-            embeds: [ createEmbed(
-                "✅ Trade Successful",
-                `${
-                    interaction.user.displayName
-                } has successfully traded **${amount.toLocaleString()}** gold with **${targetUser.displayName}**.\n\nYour new balance: **${senderUser.gold.toLocaleString()}** gold.\n${targetUser.displayName}'s new balance: **${receiverUser.gold.toLocaleString()}** gold.`),
-            ],
-        });
-        } else {
-        return interaction.reply({
-            embeds: [ createEmbed(
-                "✅ Trade Successful",
-                `You have successfully traded **${amount.toLocaleString()}** gold with **${targetUser.displayName}**.`),
-            ],
-            flags: MessageFlags.Ephemeral,
-        });
-        }
-    },
-}
+      return interaction.reply({
+        embeds: [
+          createEmbed(
+            "✅ Trade Successful",
+            `${senderCharacterName} has successfully traded **${amount.toLocaleString()}** gold with **${targetCharacterName}**.\n\n**${senderCharacterName}'s** new balance: **${senderUser.gold.toLocaleString()}** gold.\n**${targetCharacterName}'s** new balance: **${receiverUser.gold.toLocaleString()}** gold.`
+          ),
+        ],
+      });
+    } else {
+      return interaction.reply({
+        embeds: [
+          createEmbed(
+            "✅ Trade Successful",
+            `You have successfully traded **${amount.toLocaleString()}** gold with **${targetCharacterName}**.`
+          ),
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+  },
+};
