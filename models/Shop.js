@@ -2,10 +2,7 @@ const mongoose = require("mongoose");
 
 const ShopSchema = new mongoose.Schema({
   name: String, // Shop Name
-  owner: {
-    id: String, // Discord User ID of the owner
-    username: String, // Discord Username of the owner
-  },
+  owner: { type: String, required: true }, // Owner's Name
   wallet: Number, // Gold balance of the shop
   salary: Number, // Amount the shop receives when claimed
   maxEmployees: Number, // Maximum number of employees the shop can have
