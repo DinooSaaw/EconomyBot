@@ -6,6 +6,8 @@ const GuildSettingsSchema = new mongoose.Schema({
     showTreasuryBalance: { type: Boolean, default: false },
     tradeNotifications: { type: Boolean, default: true },
 
+    maxCharacters: { type: Number, default: 2 },
+
     fine: {
         allowedRoles: { type: [String], default: [] },
         allowedUsers: { type: [String], default: [] }
