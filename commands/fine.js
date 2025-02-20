@@ -6,9 +6,9 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('fine')
         .setDescription('Fine a user by deducting gold from their balance. Can result in negative balance.')
-        .addUserOption(option =>
+        .addStringOption(option =>
             option.setName('target')
-                .setDescription('The user to fine')
+                .setDescription('The character to fine')
                 .setRequired(true))
         .addIntegerOption(option =>
             option.setName('amount')
@@ -28,29 +28,37 @@ module.exports = {
         const hasRequiredRole = member && member.roles.cache.some(role => settings.fine.allowedRoles.includes(role.id));
         const isAuthorizedUser = settings.fine.allowedUsers.includes(interaction.user.id);
 
-        const executor = interaction.user;
-        const targetUser = interaction.options.getUser('target');
+        const owner = {
+            id: interaction.user.id,
+            username: interaction.user.username,
+        };
+
+        const executor = await user.findOne({ owner, job: "Guards" });
+
+        const targetName = interaction.options.getString('target');
         const fineAmount = Math.ceil(interaction.options.getInteger('amount'));
         const reason = interaction.options.getString('reason') || 'No reason provided';
 
-        // Check if executor has permission (via user ID or role)
-        if (!hasRequiredRole && !isAuthorizedUser) {
+        if (!executor) {
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor('#FF0000') // Red for error
                         .setTitle('❌ Access Denied')
-                        .setDescription('You do not have permission to fine users.')
+                        .setDescription('You do not have a character with the permissions to fine users.')
                 ],
                 flags: MessageFlags.Ephemeral
             });
         }
 
-        let target = await User.findOne({ _id: targetUser.id });
+        let target = await User.findOne({ name: targetName });
         let treasury = await User.findOne({ _id: "treasury" });
         if (!target) {
-            target = await User.create({ _id: targetUser.id, name: targetUser.username });
-        }
+            return interaction.reply({
+              content: `❌ Character **${characterName}** not found.`,
+              flags: MessageFlags.Ephemeral
+            });
+          }
 
         // Deduct fine (can result in negative balance)
         target.gold -= fineAmount;
@@ -61,7 +69,7 @@ module.exports = {
             punishmentType: 'Fine',
             amount: fineAmount,
             reason: reason,
-            issuedBy: `${executor.displayName} (${executor.username})`,
+            issuedBy: `${executor.name}`,
             issuedAt: new Date()
         });
 
@@ -73,13 +81,12 @@ module.exports = {
         const fineEmbed = new EmbedBuilder()
             .setColor('#FFA500') // Orange for penalties
             .setTitle('📜 Fine Issued')
-            .setDescription(`**${executor.displayName }** has fined **${targetUser.displayName }**.`)
+            .setDescription(`**${executor.name}** has fined **${target.name}**.`) // replace with executor character name
             .addFields(
                 { name: 'Amount', value: `**${fineAmount.toLocaleString()}** gold`, inline: true },
                 { name: 'Reason', value: reason, inline: false },
                 { name: 'New Balance', value: `**${target.gold.toLocaleString()}** gold`, inline: true }
             )
-            .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
             .setFooter({ text: 'Fines must be justified and fair.', iconURL: interaction.client.user.displayAvatarURL() });
 
         await interaction.reply({ embeds: [fineEmbed] });
