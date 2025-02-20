@@ -138,6 +138,13 @@ module.exports = {
             .setDescription("The new owner of the shop")
             .setRequired(true)
         )
+    )
+
+    // Show Subcommand
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("show")
+        .setDescription("Show all jobs and shops in the economy system.")
     ),
 
   async execute(interaction) {
@@ -169,7 +176,9 @@ module.exports = {
           tax: tax || 0,
         });
         return interaction.reply(
-          `✅ Job **${name}** created with **${basePay}** base pay and **${tax || 0}** tax.`
+          `✅ Job **${name}** created with **${basePay}** base pay and **${
+            tax || 0
+          }** tax.`
         );
       }
 
@@ -182,7 +191,9 @@ module.exports = {
         await job.save();
 
         return interaction.reply(
-          `✅ Job **${name}** updated with new base pay: **${basePay}** and tax: **${tax || 0}**.`
+          `✅ Job **${name}** updated with new base pay: **${basePay}** and tax: **${
+            tax || 0
+          }**.`
         );
       }
 
@@ -273,8 +284,7 @@ module.exports = {
 
       if (action === "delete") {
         const user = await User.findOne({ _id: target });
-        if (!user)
-          return interaction.reply(`❌ User **${target}** not found.`);
+        if (!user) return interaction.reply(`❌ User **${target}** not found.`);
         await user.deleteOne({ _id: target });
         return interaction.reply(`✅ User **${target}** deleted.`);
       }
@@ -346,6 +356,51 @@ module.exports = {
       return interaction.reply(
         `✅ Shop **${shopName}** ownership transferred to **${newOwner}**.`
       );
+    }
+
+    if (subcommand === "show") {
+      const jobs = await Job.find();
+      const shops = await Shop.find();
+
+      // Format job information
+      const jobFields = jobs.map(
+        (job) => `**${job.name}** - Base Pay: ${job.basePay}, Tax: ${job.tax}`
+      );
+
+      // Format shop information
+      const shopFields = shops.map(
+        (shop) =>
+          `**${shop.name}** - Owner: ${shop.owner.username} (${
+            shop.owner.id
+          })\nMax Employees: ${shop.maxEmployees || "Unlimited"}, Weekly Pay: ${
+            shop.weeklyPay
+          }`
+      );
+
+      // Create the embed
+      const embed = new EmbedBuilder()
+        .setTitle("Economy System Overview")
+        .setColor(0x00ff00)
+        .setDescription("Here are all the jobs and shops in the system.")
+        .addFields(
+          {
+            name: "Jobs",
+            value: jobFields.length
+              ? jobFields.join("\n")
+              : "No jobs available.",
+            inline: false,
+          },
+          {
+            name: "Shops",
+            value: shopFields.length
+              ? shopFields.join("\n")
+              : "No shops available.",
+            inline: false,
+          }
+        )
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed] });
     }
   },
 };
