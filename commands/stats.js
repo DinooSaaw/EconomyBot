@@ -34,7 +34,7 @@ module.exports = {
       .setTitle("📊 Server Statistics")
       .setDescription("Here are the current economy statistics for this server:")
       .addFields(
-        { name: "Total Users in System", value: `${totalUsers}`, inline: true },
+        { name: "Total Characters in System", value: `${totalUsers}`, inline: true },
         { name: "Total Jobs Available", value: `${totalJobs}`, inline: true },
         { name: "Total Gold in Circulation", value: `${goldInCirculation.toLocaleString()}`, inline: false },
         { name: "Gold per User (Avg)", value: `${avgGoldPerUser.toLocaleString()}`, inline: true },
