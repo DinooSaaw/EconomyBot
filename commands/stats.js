@@ -37,8 +37,8 @@ module.exports = {
         { name: "Total Characters in System", value: `${totalUsers}`, inline: true },
         { name: "Total Jobs Available", value: `${totalJobs}`, inline: true },
         { name: "Total Gold in Circulation", value: `${goldInCirculation.toLocaleString()}`, inline: false },
-        { name: "Gold per User (Avg)", value: `${avgGoldPerUser.toLocaleString()}`, inline: true },
-        { name: "Richest User", value: `__${richestUserName}__ with ${richestUserGold} gold`, inline: false }
+        { name: "Gold per Character (Avg)", value: `${avgGoldPerUser.toLocaleString()}`, inline: true },
+        { name: "Richest Characters", value: `__${richestUserName}__ with ${richestUserGold} gold`, inline: false }
       );
 
     return interaction.reply({ embeds: [embed] });
