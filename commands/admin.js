@@ -43,13 +43,6 @@ module.exports = {
             .setName("basepay")
             .setDescription("Base salary for this job (only for create/update)")
         )
-        .addRoleOption((option) =>
-          option
-            .setName("role")
-            .setDescription(
-              "Role to be assigned for this job (only for create/update)"
-            )
-        )
         .addIntegerOption((option) =>
           option
             .setName("tax")
@@ -73,10 +66,10 @@ module.exports = {
               { name: "Delete User", value: "delete" }
             )
         )
-        .addUserOption((option) =>
+        .addStringOption((option) =>
           option
             .setName("target")
-            .setDescription("User to modify.")
+            .setDescription("Character to modify.")
             .setRequired(true)
         )
         .addStringOption((option) =>
@@ -123,7 +116,7 @@ module.exports = {
             .setName("weeklypay")
             .setDescription("Weekly pay for employees (only for create)")
         )
-        .addUserOption((option) =>
+        .addStringOption((option) =>
           option.setName("owner").setDescription("The owner of the shop")
         )
     )
@@ -139,7 +132,7 @@ module.exports = {
             .setDescription("The name of the shop to transfer ownership")
             .setRequired(true)
         )
-        .addUserOption((option) =>
+        .addStringOption((option) =>
           option
             .setName("new_owner")
             .setDescription("The new owner of the shop")
@@ -155,7 +148,6 @@ module.exports = {
     if (subcommand === "job") {
       const name = interaction.options.getString("name");
       const basePay = interaction.options.getInteger("basepay");
-      const role = interaction.options.getRole("role");
       const tax = interaction.options.getInteger("tax");
 
       if (basePay !== null && !isWholeNumber(basePay)) {
@@ -174,13 +166,10 @@ module.exports = {
         await Job.create({
           name,
           basePay,
-          roleId: role?.id || null,
           tax: tax || 0,
         });
         return interaction.reply(
-          `✅ Job **${name}** created with **${basePay}** base pay, role ${
-            role ? role.name : "None"
-          }, and **${tax || 0}** tax.`
+          `✅ Job **${name}** created with **${basePay}** base pay and **${tax || 0}** tax.`
         );
       }
 
@@ -189,14 +178,11 @@ module.exports = {
         if (!job) return interaction.reply(`❌ Job **${name}** not found.`);
 
         if (basePay !== null) job.basePay = basePay;
-        if (role) job.roleId = role.id;
         if (tax !== null) job.tax = tax;
         await job.save();
 
         return interaction.reply(
-          `✅ Job **${name}** updated with new base pay: **${basePay}**, role: ${
-            role ? role.name : "None"
-          }, and tax: **${tax || 0}**.`
+          `✅ Job **${name}** updated with new base pay: **${basePay}** and tax: **${tax || 0}**.`
         );
       }
 
@@ -225,12 +211,12 @@ module.exports = {
 
     // User Management
     if (subcommand === "user") {
-      const target = interaction.options.getUser("target");
+      const target = interaction.options.getString("target");
       const action = interaction.options.getString("action");
 
       if (action === "set_job") {
         const jobName = interaction.options.getString("job");
-        const user = await User.findOne({ _id: target.id });
+        const user = await User.findOne({ name: target });
         if (!user) {
           var userData = await interaction.guild.members.fetch(target);
           let Userjob = await Job.findOne({
@@ -251,13 +237,13 @@ module.exports = {
         user.job = job.name;
         await user.save();
         return interaction.reply(
-          `✅ Job for **${target.username}** updated to **${jobName}**.`
+          `✅ Job for **${target}** updated to **${jobName}**.`
         );
       }
 
       if (action === "modify_gold") {
         const amount = interaction.options.getInteger("amount");
-        const user = await User.findOne({ _id: target.id });
+        const user = await User.findOne({ name: target });
         if (!user) {
           var userData = await interaction.guild.members.fetch(target);
           let Userjob = await Job.findOne({
@@ -281,23 +267,23 @@ module.exports = {
         user.gold += amount;
         await user.save();
         return interaction.reply(
-          `✅ Gold for **${target.username}** updated. New balance: **${user.gold}**.`
+          `✅ Gold for **${target}** updated. New balance: **${user.gold}**.`
         );
       }
 
       if (action === "delete") {
-        const user = await User.findOne({ _id: target.id });
+        const user = await User.findOne({ _id: target });
         if (!user)
-          return interaction.reply(`❌ User **${target.username}** not found.`);
-        await user.deleteOne({ _id: target.id });
-        return interaction.reply(`✅ User **${target.username}** deleted.`);
+          return interaction.reply(`❌ User **${target}** not found.`);
+        await user.deleteOne({ _id: target });
+        return interaction.reply(`✅ User **${target}** deleted.`);
       }
     }
 
     // Shop Management
     if (subcommand === "shop") {
       const name = interaction.options.getString("name");
-      const owner = interaction.options.getUser("owner"); // Get owner
+      const owner = interaction.options.getString("owner"); // Get owner
 
       if (action === "create") {
         const maxEmployees = interaction.options.getInteger("maxemployees");
@@ -322,17 +308,12 @@ module.exports = {
           name,
           maxEmployees: maxEmployees || null, // Allow maxEmployees to be null
           weeklyPay,
-          owner: {
-            id: owner.id,
-            username: owner.username,
-          },
+          owner,
         });
         return interaction.reply(
           `✅ Shop **${name}** created with **${
             maxEmployees !== null ? maxEmployees : "no limit"
-          }** max employees and **${weeklyPay}** weekly pay. Owner: **${
-            owner.username
-          }**.`
+          }** max employees and **${weeklyPay}** weekly pay. Owner: **${owner}**.`
         );
       }
 
@@ -348,23 +329,22 @@ module.exports = {
     // Transfer Shop Ownership
     if (subcommand === "transfer_owner") {
       const shopName = interaction.options.getString("shop_name");
-      const newOwner = interaction.options.getUser("new_owner");
+      const newOwner = interaction.options.getString("new_owner");
 
       const shop = await Shop.findOne({ name: shopName });
       if (!shop) return interaction.reply(`❌ Shop **${shopName}** not found.`);
 
-      if (shop.owner.id === newOwner.id) {
+      if (shop.owner === newOwner) {
         return interaction.reply(
           `❌ The new owner is already the owner of this shop.`
         );
       }
 
-      shop.owner.id = newOwner.id;
-      shop.owner.username = newOwner.username;
+      shop.owner = newOwner;
       await shop.save();
 
       return interaction.reply(
-        `✅ Shop **${shopName}** ownership transferred to **${newOwner.username}**.`
+        `✅ Shop **${shopName}** ownership transferred to **${newOwner}**.`
       );
     }
   },
