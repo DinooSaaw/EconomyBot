@@ -14,7 +14,7 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName("view_user")
+        .setName("view_character")
         .setDescription("View a character’s information.")
         .addStringOption((option) =>
           option
@@ -108,7 +108,7 @@ module.exports = {
       }
     }
 
-    if (subcommand === "view_user") {
+    if (subcommand === "view_character") {
       const targetName = interaction.options.getString("target");
       let user = await User.findOne({ name: targetName });
 
