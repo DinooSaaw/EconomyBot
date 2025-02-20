@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    _id: { type: String, required: true },
     name: { type: String, required: true },
+    owner: {
+        id: String,
+        username: String,
+      },
     job: { type: String, default: null },
     gold: { type: Number, default: 0 },
     lastSalary: { type: Date, default: null },
