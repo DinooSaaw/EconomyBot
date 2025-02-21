@@ -155,7 +155,7 @@ module.exports = {
     const subcommand = interaction.options.getSubcommand();
     const shopName = interaction.options.getString("shop_name");
     const userId = interaction.user.id;
-    const shop = await Shop.findOne({ name: shopName });
+    const shop = await Shop.findOne({ name: shopName, closed: { $ne: true } });
 
     if (!shop && subcommand !== "info") {
       return interaction.reply({
