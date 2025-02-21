@@ -80,7 +80,7 @@ module.exports = {
     // **Embed for interaction response**
     const interactionEmbed = new EmbedBuilder()
       .setTitle("⚖️ Exile Decree Executed")
-      .setColor("RED")
+      .setColor("0xff0000")
       .setDescription(`**${target}** has been officially **exiled**.`)
       .addFields(
         { name: "Reason", value: reason },
