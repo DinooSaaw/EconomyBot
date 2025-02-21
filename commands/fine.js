@@ -21,13 +21,6 @@ module.exports = {
                 .setRequired(false)),
     async execute(interaction) {
 
-        const guildId = interaction.guildId;
-        const settings = await GuildSettings.findById(guildId) || new GuildSettings({ _id: guildId });
-
-        const member = interaction.member;
-        const hasRequiredRole = member && member.roles.cache.some(role => settings.fine.allowedRoles.includes(role.id));
-        const isAuthorizedUser = settings.fine.allowedUsers.includes(interaction.user.id);
-
         const owner = {
             id: interaction.user.id,
             username: interaction.user.username,
