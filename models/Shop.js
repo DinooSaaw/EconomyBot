@@ -8,7 +8,8 @@ const ShopSchema = new mongoose.Schema({
   maxEmployees: Number, // Maximum number of employees the shop can have
   staff: [
     {
-      userId: String, // Staff Member's ID
+      name: String, // Staff Member's Name
+      id: String, // Staff Member's ID
       salary: Number, // Salary they receive from shop
     },
   ],

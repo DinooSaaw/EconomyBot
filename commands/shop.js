@@ -38,8 +38,8 @@ module.exports = {
             .setDescription("The shop's name")
             .setRequired(true)
         )
-        .addUserOption((opt) =>
-          opt.setName("owner").setDescription("The new owner").setRequired(true)
+        .addStringOption((opt) =>
+          opt.setName("character_name").setDescription("The new owner character name").setRequired(true)
         )
     )
     .addSubcommand((sub) =>
@@ -52,11 +52,8 @@ module.exports = {
             .setDescription("The shop's name")
             .setRequired(true)
         )
-        .addUserOption((opt) =>
-          opt
-            .setName("staff")
-            .setDescription("The staff member")
-            .setRequired(true)
+        .addStringOption((opt) =>
+          opt.setName("character_name").setDescription("The staff member character name").setRequired(true)
         )
         .addNumberOption((opt) =>
           opt.setName("salary").setDescription("Their salary").setRequired(true)
@@ -72,10 +69,10 @@ module.exports = {
             .setDescription("The shop's name")
             .setRequired(true)
         )
-        .addUserOption((opt) =>
+        .addStringOption((opt) =>
           opt
-            .setName("staff")
-            .setDescription("The staff member")
+            .setName("character_name")
+            .setDescription("The staff member character name")
             .setRequired(true)
         )
     )
@@ -154,8 +151,18 @@ module.exports = {
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
     const shopName = interaction.options.getString("shop_name");
+    const characterName = interaction.options.getString("character_name");
     const userId = interaction.user.id;
-    const shop = await Shop.findOne({ name: shopName, closed: { $ne: true } });
+
+    let shop;
+    if (characterName) {
+      const character = await User.findOne({ name: characterName });
+      if (character) {
+        shop = await Shop.findOne({ name: shopName, owner: { id: character.id } });
+      }
+    } else {
+      shop = await Shop.findOne({ name: shopName, closed: { $ne: true } });
+    }
 
     if (!shop && subcommand !== "info") {
       return interaction.reply({
@@ -262,7 +269,15 @@ module.exports = {
         });
       }
 
-      const newOwner = interaction.options.getUser("owner");
+      const newOwnerName = interaction.options.getString("character_name");
+      const newOwner = await User.findOne({ name: newOwnerName });
+
+      if (!newOwner) {
+        return interaction.reply({
+          content: "Character not found.",
+          ephemeral: true,
+        });
+      }
 
       shop.owner = { id: newOwner.id, username: newOwner.username };
       await shop.save();
@@ -280,7 +295,8 @@ module.exports = {
         });
       }
 
-      const staff = interaction.options.getUser("staff");
+      const staffName = interaction.options.getString("character_name");
+      const staff = await User.findOne({ name: staffName });
       const salary = interaction.options.getNumber("salary");
 
       // Check if the shop has a maxEmployees cap
@@ -294,7 +310,7 @@ module.exports = {
         });
       }
 
-      shop.staff.push({ userId: staff.id, salary });
+      shop.staff.push({ name: staff.username, id: staff.owner.id, salary });
       await shop.save();
       return interaction.reply({
         content: `Added ${staff.username} as staff with salary ${salary}g.`,
@@ -309,12 +325,23 @@ module.exports = {
         });
       }
 
-      const staff = interaction.options.getUser("staff");
-      const staffIndex = shop.staff.findIndex((s) => s.userId === staff.id);
+      const staffName = interaction.options.getString("character_name");
+      const staff = await User.findOne({ name: staffName });
+
+      if (!staff) {
+        return interaction.reply({
+          content: "Staff member not found.",
+          ephemeral: true,
+        });
+      }
+
+      const staffIndex = shop.staff.findIndex(
+        (s) => s.id === staff.owner.id
+      );
 
       if (staffIndex === -1) {
         return interaction.reply({
-          content: "This user is not a staff member of the shop.",
+          content: `${staff.username} is not staff of this shop.`,
           ephemeral: true,
         });
       }
@@ -328,108 +355,92 @@ module.exports = {
     }
 
     if (subcommand === "post_item") {
-        const itemName = interaction.options.getString("item");
-        const price = interaction.options.getNumber("price");
-        const quantity = interaction.options.getNumber("quantity");
-      
-        // Check if the user is the owner or staff
-        const userIsStaffOrOwner =
-          shop.owner.id === interaction.user.id ||
-          shop.staff.some((staff) => staff.userId === interaction.user.id);
-      
-        if (!userIsStaffOrOwner) {
-          return interaction.reply({
-            content: "You must be the owner or a staff member to post items.",
-            ephemeral: true,
-          });
-        }
-      
-        shop.inventory.push({ itemName, price, quantity });
-        await shop.save();
+      if (!userIsStaffOrOwner) {
         return interaction.reply({
-          content: `Added ${quantity}x ${itemName} for ${price}g each.`,
+          content: "❌ You must be the owner to post items.",
+          ephemeral: true,
         });
       }
-      
+
+      const itemName = interaction.options.getString("item");
+      const price = interaction.options.getNumber("price");
+      const quantity = interaction.options.getNumber("quantity");
+
+      // Check if item already exists
+      const existingItemIndex = shop.inventory.findIndex(
+        (item) => item.itemName === itemName
+      );
+
+      if (existingItemIndex !== -1) {
+        shop.inventory[existingItemIndex].quantity += quantity;
+      } else {
+        shop.inventory.push({ itemName, price, quantity });
+      }
+
+      await shop.save();
+      return interaction.reply({
+        content: `Posted **${itemName}** for ${price}g (x${quantity})`,
+      });
+    }
 
     if (subcommand === "buy_item") {
       const itemName = interaction.options.getString("item");
       const quantity = interaction.options.getNumber("quantity");
-      const itemIndex = shop.inventory.findIndex(
-        (i) => i.itemName === itemName
+
+      const item = shop.inventory.find(
+        (i) => i.itemName === itemName && i.quantity >= quantity
       );
 
-      if (itemIndex === -1 || shop.inventory[itemIndex].quantity < quantity) {
+      if (!item) {
         return interaction.reply({
-          content: "Not enough stock.",
+          content: `Item not available or insufficient quantity.`,
           ephemeral: true,
         });
       }
 
-      const item = shop.inventory[itemIndex];
-      const totalCost = item.price * quantity;
-      const tax = 0; // Flat tax
-      const netEarnings = totalCost - tax;
+      const totalPrice = item.price * quantity;
 
-      // Fetch buyer's user data
-      const buyer = await User.findOne({ _id: interaction.user.id });
-      if (!buyer || buyer.gold < totalCost) {
+      // Assuming user has enough balance to make the purchase
+      // Deduct the price from the user's balance and update the shop's inventory
+      const user = await User.findOne({name: characterName});
+      if (user.balance < totalPrice) {
         return interaction.reply({
-          content: "You don't have enough gold.",
+          content: `You don't have enough funds.`,
           ephemeral: true,
         });
       }
 
-      // Deduct gold from buyer
-      buyer.gold -= totalCost;
-      await buyer.save();
-
-      // Add earnings to shop wallet
-      shop.wallet += netEarnings;
-
-      // Deduct tax and add it to the treasury
-      const treasury = await User.findOne({
-        _id: "treasury",
-      });
-      treasury.gold += tax;
-      await treasury.save();
-
-      // Reduce item quantity or remove from inventory
+      user.gold -= totalPrice;
       item.quantity -= quantity;
-      if (item.quantity === 0) {
-        shop.inventory.splice(itemIndex, 1);
-      }
 
+      await user.save();
       await shop.save();
 
       return interaction.reply({
-        content: `Bought ${quantity}x ${itemName} for ${totalCost}g. (${tax}g tax deducted, shop earned ${netEarnings}g).`,
+        content: `You bought **${quantity} ${itemName}(s)** for ${totalPrice}g.`,
       });
     }
 
     if (subcommand === "request_salary") {
-      const staffMember = shop.staff.find(
-        (s) => s.userId === interaction.user.id
-      );
-      if (!staffMember) {
+      if (!shop.staff.some((s) => s.id === interaction.user.id)) {
         return interaction.reply({
-          content: "You're not a staff member.",
+          content: "You must be a staff member to request salary.",
           ephemeral: true,
         });
       }
 
-      if (shop.wallet < staffMember.salary) {
-        return interaction.reply({
-          content: "The shop does not have enough funds to pay your salary.",
-          ephemeral: true,
-        });
-      }
+      const staffMember = shop.staff.find((s) => s.id === interaction.user.id);
+      const salary = staffMember.salary;
+      let user = await User.findOne({ name: staff.name });
+      // Transfer salary
+      shop.wallet -= salary;
+      user.balance += salary;
 
-      shop.wallet -= staffMember.salary;
       await shop.save();
+      await user.save();
 
       return interaction.reply({
-        content: `Salary of ${staffMember.salary}g paid to you.`,
+        content: `You have requested and received ${salary}g.`,
         ephemeral: true,
       });
     }
@@ -437,17 +448,18 @@ module.exports = {
     if (subcommand === "change_name") {
       if (!isOwner) {
         return interaction.reply({
-          content: "❌ You must be the owner to change the shop's name.",
+          content: "❌ You must be the owner to change the shop name.",
           ephemeral: true,
         });
       }
 
       const newName = interaction.options.getString("new_name");
       shop.name = newName;
+
       await shop.save();
 
       return interaction.reply({
-        content: `Shop name changed to **${newName}**.`,
+        content: `Shop name has been changed to **${newName}**.`,
       });
     }
   },
