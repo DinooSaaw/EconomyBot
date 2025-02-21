@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Shop = require("../models/Shop");
 
 // Replace with your actual webhook URL
-const webhookClient = new WebhookClient({ url: "YOUR_WEBHOOK_URL" });
+const webhookClient = new WebhookClient({ url: "https://discord.com/api/webhooks/1342366897290608680/MBFWlSdDCUTanHNV-2mitNNTGnTzn-CQ6gUq8m56O3Qu1-ZRMISOl2kJTbKrtjviQNDr" });
 
 module.exports = {
   data: new SlashCommandBuilder()
