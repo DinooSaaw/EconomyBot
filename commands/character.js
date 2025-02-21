@@ -16,6 +16,12 @@ module.exports = {
             .setDescription("Character name")
             .setRequired(true)
         )
+        .addUserOption((option) =>
+          option
+            .setName("user")
+            .setDescription("Optional user to bind the character to")
+            .setRequired(false)
+        )
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -27,6 +33,12 @@ module.exports = {
             .setDescription("Character name")
             .setRequired(true)
         )
+        .addUserOption((option) =>
+          option
+            .setName("user")
+            .setDescription("Optional user to delete the character from")
+            .setRequired(false)
+        )
     )
     .addSubcommand((subcommand) =>
       subcommand.setName("list").setDescription("List all characters.")
@@ -34,7 +46,6 @@ module.exports = {
 
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
-
     const guildId = interaction.guild.id;
     let settings = await GuildSettings.findOne({ _id: guildId });
 
@@ -48,12 +59,21 @@ module.exports = {
       username: interaction.user.username,
     };
 
+    let targetUser = owner; // Default to the invoker's character
+
+    if (interaction.options.getUser("user")) {
+      targetUser = {
+        id: interaction.options.getUser("user").id,
+        username: interaction.options.getUser("user").username,
+      };
+    }
+
     if (subcommand === "create") {
       if (settings.maxCharacters) {
-        const characters = await Character.find({ "owner.id": owner.id });
+        const characters = await Character.find({ "owner.id": targetUser.id });
         if (characters.length >= settings.maxCharacters) {
           return interaction.reply(
-            `❌ You have reached the maximum number of characters allowed.`
+            `❌ This user has reached the maximum number of characters allowed.`
           );
         }
       }
@@ -61,23 +81,28 @@ module.exports = {
       const name = interaction.options.getString("name");
       await Character.create({
         name,
-        owner: owner,
+        owner: targetUser,
       });
-      return interaction.reply(`✅ Character **${name}** created.`);
+      return interaction.reply(`✅ Character **${name}** created for **${targetUser.username}**.`);
     }
 
     if (subcommand === "delete") {
       const name = interaction.options.getString("name");
-      await Character.deleteOne({ name, "owner.id": owner.id });
-      return interaction.reply(`✅ Character **${name}** deleted.`);
+      const result = await Character.deleteOne({ name, "owner.id": targetUser.id });
+
+      if (result.deletedCount === 0) {
+        return interaction.reply(`❌ No character found with the name **${name}** for user **${targetUser.username}**.`);
+      }
+
+      return interaction.reply(`✅ Character **${name}** deleted for **${targetUser.username}**.`);
     }
 
     if (subcommand === "list") {
-      const characters = await Character.find({ "owner.id": owner.id });
+      const characters = await Character.find({ "owner.id": targetUser.id });
 
       const embed = new EmbedBuilder()
         .setColor("#0099ff")
-        .setTitle(`Character List for ${interaction.user.username}`)
+        .setTitle(`Character List for ${targetUser.username}`)
         .setDescription("Here is the list of characters you have created:")
         .setFooter({ text: `Requested by ${interaction.user.username}` })
         .setTimestamp();
