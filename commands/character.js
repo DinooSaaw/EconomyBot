@@ -11,16 +11,10 @@ module.exports = {
         .setName("create")
         .setDescription("Create a new character.")
         .addStringOption((option) =>
-          option
-            .setName("name")
-            .setDescription("Character name")
-            .setRequired(true)
+          option.setName("name").setDescription("Character name").setRequired(true)
         )
         .addUserOption((option) =>
-          option
-            .setName("user")
-            .setDescription("Optional user to bind the character to")
-            .setRequired(false)
+          option.setName("user").setDescription("Optional user to bind the character to").setRequired(false)
         )
     )
     .addSubcommand((subcommand) =>
@@ -28,20 +22,19 @@ module.exports = {
         .setName("delete")
         .setDescription("Delete a character.")
         .addStringOption((option) =>
-          option
-            .setName("name")
-            .setDescription("Character name")
-            .setRequired(true)
+          option.setName("name").setDescription("Character name").setRequired(true)
         )
         .addUserOption((option) =>
-          option
-            .setName("user")
-            .setDescription("Optional user to delete the character from")
-            .setRequired(false)
+          option.setName("user").setDescription("Optional user to delete the character from").setRequired(false)
         )
     )
     .addSubcommand((subcommand) =>
-      subcommand.setName("list").setDescription("List all characters.")
+      subcommand
+        .setName("list")
+        .setDescription("List all characters.")
+        .addUserOption((option) =>
+          option.setName("user").setDescription("Optional user to view characters of").setRequired(false)
+        )
     ),
 
   async execute(interaction) {
@@ -59,7 +52,7 @@ module.exports = {
       username: interaction.user.username,
     };
 
-    let targetUser = owner; // Default to the invoker's character
+    let targetUser = owner; // Default to the command user
 
     if (interaction.options.getUser("user")) {
       targetUser = {
@@ -108,21 +101,17 @@ module.exports = {
         .setTimestamp();
 
       if (characters.length > 0) {
-        embed.addFields(
-          {
-            name: "Characters:",
-            value: characters.map((c) => `**${c.name}**`).join("\n"),
-            inline: false,
-          }
-        );
+        embed.addFields({
+          name: "Characters:",
+          value: characters.map((c) => `**${c.name}**`).join("\n"),
+          inline: false,
+        });
       } else {
-        embed.addFields(
-          {
-            name: "Characters:",
-            value: "No characters created yet.",
-            inline: false,
-          }
-        );
+        embed.addFields({
+          name: "Characters:",
+          value: "No characters created yet.",
+          inline: false,
+        });
       }
 
       return interaction.reply({ embeds: [embed] });
