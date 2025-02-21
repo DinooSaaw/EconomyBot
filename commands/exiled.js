@@ -46,7 +46,7 @@ module.exports = {
     if (!user) {
       return interaction.reply(`❌ User **${target}** not found.`);
     }
-
+    
     if (user.isExiled) {
       return interaction.reply(`⚠️ **${target}** is already exiled.`);
     }
@@ -80,7 +80,7 @@ module.exports = {
     // **Embed for interaction response**
     const interactionEmbed = new EmbedBuilder()
       .setTitle("⚖️ Exile Decree Executed")
-      .setColor("0xff0000")
+      .setColor(0xff0000)
       .setDescription(`**${target}** has been officially **exiled**.`)
       .addFields(
         { name: "Reason", value: reason },
@@ -96,7 +96,7 @@ module.exports = {
     // **Webhook Embed - Official Government Proclamation**
     const webhookEmbed = new EmbedBuilder()
       .setTitle("📜 Official Proclamation of Exile")
-      .setColor("DARK_RED")
+      .setColor(0xff0000)
       .setDescription(
         `**By decree of The High Council, let it be known throughout the land:**\n\n` +
         `The individual known as **${target}** has been **exiled** from our society, ` +

@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     job: { type: String, default: null },
     gold: { type: Number, default: 0 },
     lastSalary: { type: Date, default: null },
+    isExiled: { type: Boolean, default: false },
     criminalRecord: [
         {
             punishmentType: { type: String, required: true },
