@@ -370,9 +370,7 @@ module.exports = {
       // Format shop information
       const shopFields = shops.map(
         (shop) =>
-          `**${shop.name}** - Owner: ${shop.owner.username} (${
-            shop.owner.id
-          })\nMax Employees: ${shop.maxEmployees || "Unlimited"}, Weekly Pay: ${
+          `**${shop.name}** - Owner: ${shop.owner} \nMax Employees: ${shop.maxEmployees || "Unlimited"}, Weekly Pay: ${
             shop.weeklyPay
           }`
       );
