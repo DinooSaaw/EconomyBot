@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, WebhookClient } = require("discord.js");
 const User = require("../models/User");
 const Shop = require("../models/Shop");
+const allowedJobs = ["Dragons", "Royals"];
 
 // Replace with your actual webhook URL
 const webhookClient = new WebhookClient({ url: "https://discord.com/api/webhooks/1342366897290608680/MBFWlSdDCUTanHNV-2mitNNTGnTzn-CQ6gUq8m56O3Qu1-ZRMISOl2kJTbKrtjviQNDr" });
@@ -37,10 +38,20 @@ module.exports = {
       });
     }
 
-    const executor = await User.findOne({ "owner.id": interaction.user.id, job: "Guards" });
+
+    const executor = await User.findOne({ owner, job: { $in: allowedJobs }});
+
     if (!executor) {
-      return interaction.reply("❌ You must be a **Guard** to exile a character.");
-    }
+                return interaction.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor('#FF0000') // Red for error
+                            .setTitle('❌ Access Denied')
+                            .setDescription('You do not have a character with the permissions to fine users.')
+                    ],
+                    flags: MessageFlags.Ephemeral
+                });
+            }
 
     const user = await User.findOne({ name: target });
     if (!user) {
