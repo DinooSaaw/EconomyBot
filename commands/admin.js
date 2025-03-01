@@ -317,7 +317,7 @@ module.exports = {
         await Shop.create({
           name,
           maxEmployees: maxEmployees || null, // Allow maxEmployees to be null
-          weeklyPay,
+          salary: weeklyPay,
           owner,
         });
         return interaction.reply(
@@ -371,7 +371,7 @@ module.exports = {
       const shopFields = shops.map(
         (shop) =>
           `**${shop.name}** - Owner: ${shop.owner} \nMax Employees: ${shop.maxEmployees || "Unlimited"}, Weekly Pay: ${
-            shop.weeklyPay
+            shop.salary
           }`
       );
 
