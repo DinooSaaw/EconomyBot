@@ -155,14 +155,7 @@ module.exports = {
     const userId = interaction.user.id;
 
     let shop;
-    if (characterName) {
-      const character = await User.findOne({ name: characterName });
-      if (character) {
-        shop = await Shop.findOne({ name: shopName, owner: { id: character.id } });
-      }
-    } else {
-      shop = await Shop.findOne({ name: shopName, closed: { $ne: true } });
-    }
+    shop = await Shop.findOne({ name: shopName, closed: { $ne: true } });
 
     if (!shop && subcommand !== "info") {
       return interaction.reply({
@@ -171,8 +164,11 @@ module.exports = {
       });
     }
 
-    const isOwner = shop && shop.owner.id === userId;
-
+    const isOwner = shop && await User.findOne({ 
+      name: shop.owner, 
+      "owner.id": userId
+    });
+    
     if (subcommand === "info") {
       if (!shopName) {
         // Display a list of all shops
@@ -185,7 +181,7 @@ module.exports = {
         }
 
         const shopList = allShops
-          .map((shop) => `${shop.name} - Owned by <@${shop.owner.id}>`)
+          .map((shop) => `${shop.name} - Owned by <@${shop.owner}>`)
           .join("\n");
 
         const embed = new EmbedBuilder()
@@ -202,11 +198,10 @@ module.exports = {
         });
 
       const userIsStaffOrOwner =
-        shop.owner.id === interaction.user.id ||
-        shop.staff.some((staff) => staff.userId === interaction.user.id);
+      User.findOne({ name: shop.owner, "owner.id": userId }) || shop.staff.some((staff) => staff.id === interaction.user.id);
 
       const staffList =
-        shop.staff.map((s) => `<@${s.userId}>: ${s.salary}g`).join("\n") ||
+        shop.staff.map((s) => `${s.name} <@${s.id}>: ${s.salary}g`).join("\n") ||
         "None";
       const inventoryList =
         shop.inventory
@@ -219,7 +214,7 @@ module.exports = {
       const embedFields = [
         {
           name: "Owner",
-          value: `<@${shop.owner.id}> (${shop.owner.username})`,
+          value: shop.owner,
           inline: true,
         },
         { name: "Wallet", value: `${shop.wallet}g`, inline: true },
@@ -246,7 +241,7 @@ module.exports = {
     }
 
     if (subcommand === "claim_salary") {
-      if (shop.owner.id !== interaction.user.id) {
+      if (User.findOne({ name: shop.owner, "owner.id": userId })) {
         return interaction.reply({
           content: "You must be the shop owner to claim the salary.",
           ephemeral: true,
@@ -279,7 +274,7 @@ module.exports = {
         });
       }
 
-      shop.owner = { id: newOwner.id, username: newOwner.username };
+      shop.owner = newOwnerName
       await shop.save();
 
       return interaction.reply({
@@ -310,10 +305,10 @@ module.exports = {
         });
       }
 
-      shop.staff.push({ name: staff.username, id: staff.owner.id, salary });
+      shop.staff.push({ name: staffName, id: staff.owner.id, salary });
       await shop.save();
       return interaction.reply({
-        content: `Added ${staff.username} as staff with salary ${salary}g.`,
+        content: `Added ${staff.name} as staff with salary ${salary}g.`,
       });
     }
 
