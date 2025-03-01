@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../models/User');
-const GuildSettings = require("../models/Settings.js");
+const allowedJobs = ["Guards", "Dragons", "Royals"];
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -26,7 +26,7 @@ module.exports = {
             username: interaction.user.username,
         };
 
-        const executor = await User.findOne({ owner, job: "Guards" });
+        const executor = await User.findOne({ owner, job: { $in: allowedJobs }});
 
         const targetName = interaction.options.getString('target');
         const fineAmount = Math.ceil(interaction.options.getInteger('amount'));
